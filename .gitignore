@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# dados e resultados do PA1
+data/
+runs/
+checkpoints/
+*.pt

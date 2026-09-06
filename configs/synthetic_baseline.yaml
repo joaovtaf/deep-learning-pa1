@@ -1,0 +1,45 @@
+# Parte 0, teste unitario sintetico. Tem que treinar em menos de 5 minutos.
+name: synthetic_baseline
+seed: 0
+device: auto
+epochs: 30   # ~2 min no MPS, menos ainda numa T4 do Colab
+output_dir: runs/synthetic_baseline
+
+data:
+  name: synthetic
+  size: 128
+  n_range: [5, 20]
+  radius_range: [5, 18]
+  lengths:
+    train: 512
+    val: 48
+    test: 128
+
+loader:
+  batch_size: 16
+  num_workers: 0
+
+model:
+  name: unet
+  encoder_name: resnet18
+  in_channels: 3
+  out_channels: 1
+  decoder_channels: [128, 64, 32, 32, 16]
+  skip: true
+  pretrained: true
+
+loss:
+  name: bce_dice
+  bce_weight: 1.0
+  dice_weight: 1.0
+
+optimizer:
+  lr: 0.001
+  weight_decay: 0.0001
+
+postprocess:
+  threshold: 0.5
+  min_size: 10
+
+# item 4 da Parte 1: a regra de matching e escolha nossa e tem que estar explicita
+matching: greedy

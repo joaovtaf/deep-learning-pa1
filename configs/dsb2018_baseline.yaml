@@ -1,0 +1,45 @@
+# Parte 1, baseline semantico binario no DSB2018.
+# As instancias saem depois do jeito ingenuo: limiar + componentes conexos.
+name: dsb2018_baseline
+seed: 0
+device: auto
+epochs: 40
+output_dir: runs/dsb2018_baseline
+
+data:
+  name: dsb2018
+  root: data/dsb2018/stage1_train
+  crop: 256
+  fractions: [0.7, 0.15, 0.15]
+  n_clusters: 4        # k-means de cor usado como proxy de modalidade pro split
+  split_seed: 0
+
+loader:
+  batch_size: 16
+  num_workers: 4
+
+model:
+  name: unet
+  encoder_name: resnet34
+  in_channels: 3
+  out_channels: 1
+  decoder_channels: [256, 128, 64, 32, 16]
+  skip: true
+  pretrained: true
+
+loss:
+  name: bce_dice
+  bce_weight: 1.0
+  dice_weight: 1.0
+
+optimizer:
+  lr: 0.0003
+  weight_decay: 0.0001
+
+postprocess:
+  threshold: 0.5
+  min_size: 20
+
+# greedy por IoU decrescente. pra comparar com Hungarian, passa
+# --matching hungarian no scripts/evaluate.py
+matching: greedy
