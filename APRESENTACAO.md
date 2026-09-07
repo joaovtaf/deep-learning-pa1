@@ -202,8 +202,8 @@ epocas), as duas versoes:
 
 | config | tempo de treino | Dice (teste) | mAP (teste) | erro de contagem |
 |---|---|---|---|---|
-| `synthetic_baseline` (binario, Parte 1) | **1.15 min** | 0.9921 | 0.1032 | 9.70 |
-| `synthetic_boundary` (trilha A, Parte 2) | **1.23 min** | 0.9840 | **0.5036** | **2.41** |
+| `synthetic_baseline` (binario, Parte 1) | **1.2 min** | 0.9920 | 0.1032 | 9.70 |
+| `synthetic_boundary` (trilha A, Parte 2) | **1.3 min** | 0.9857 | **0.5122** | **2.22** |
 
 **Na CPU** (i7 de 18 nucleos, sem GPU), com 320 imagens e 8 epocas, a versao binaria
 leva 7.4 minutos no total, mas a metrica satura na quinta epoca, aos **4.8 minutos**:
@@ -226,9 +226,9 @@ do decodificador. Isso justifica a decisao de selecionar checkpoint por mAP de v
 e nao por loss: aqui as duas coisas estao completamente descorreladas.
 
 E a linha de baixo da primeira tabela ja antecipa a Parte 2 no mesmo dataset e com a
-mesma arquitetura: trocando so o que a rede preve, o mAP vai de **0.103 para 0.504** e o
-erro de contagem cai de **9.70 para 2.41 nucleos por imagem**. Quase 5 vezes de ganho,
-com Dice praticamente igual (0.9921 contra 0.9840, ou seja, ligeiramente pior).
+mesma arquitetura: trocando so o que a rede preve, o mAP vai de **0.103 para 0.512** e o
+erro de contagem cai de **9.70 para 2.22 nucleos por imagem**. Quase 5 vezes de ganho,
+com Dice praticamente igual (0.9920 contra 0.9857, ou seja, ligeiramente pior).
 
 ## Parte 1, o baseline e a quantificacao do fracasso
 
@@ -242,23 +242,23 @@ Resultado no split de teste (101 imagens), em `results/parte1/metrics.json`:
 
 | metrica | valor |
 |---|---|
-| IoU semantico | 0.8387 |
-| Dice | 0.9099 |
-| mAP @[.50:.95] | 0.4542 |
-| AP @.50 | 0.6769 |
-| erro absoluto de contagem | **10.04 nucleos por imagem** |
+| IoU semantico | 0.8415 |
+| Dice | 0.9120 |
+| mAP @[.50:.95] | 0.4654 |
+| AP @.50 | 0.6931 |
+| erro absoluto de contagem | **10.05 nucleos por imagem** |
 
 Por limiar de IoU, que e o que mostra onde a coisa desmonta:
 
 | limiar | 0.50 | 0.55 | 0.60 | 0.65 | 0.70 | 0.75 | 0.80 | 0.85 | 0.90 | 0.95 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| precisao | 0.677 | 0.645 | 0.614 | 0.585 | 0.559 | 0.498 | 0.411 | 0.302 | 0.188 | 0.063 |
+| precisao | 0.693 | 0.663 | 0.633 | 0.601 | 0.572 | 0.509 | 0.423 | 0.314 | 0.188 | 0.058 |
 
 ### Quanto desse erro e da rede e quanto e do decodificador
 
 Comparando com o teto de oraculo medido antes: o decodificador ingenuo, alimentado com a
-mascara perfeita, daria 0.766 nesse mesmo split. O modelo entrega 0.454. Ou seja, dos
-0.546 de mAP que faltam pro maximo, cerca de **0.31 e culpa da rede** (mascara semantica
+mascara perfeita, daria 0.766 nesse mesmo split. O modelo entrega 0.465. Ou seja, dos
+0.535 de mAP que faltam pro maximo, cerca de **0.30 e culpa da rede** (mascara semantica
 imperfeita) e **0.23 e culpa do decodificador** (fusao de nucleos encostados que nem uma
 mascara perfeita resolveria).
 
@@ -280,8 +280,8 @@ Rodamos a avaliacao com as duas regras no mesmo checkpoint e no mesmo split:
 
 | regra | mAP | AP50 | erro de contagem |
 |---|---|---|---|
-| guloso por IoU decrescente | 0.4542 | 0.6769 | 10.04 |
-| Hungarian | 0.4542 | 0.6769 | 10.04 |
+| guloso por IoU decrescente | 0.4654 | 0.6931 | 10.05 |
+| Hungarian | 0.4654 | 0.6931 | 10.05 |
 
 Deram **exatamente o mesmo numero**, ate a quarta casa. Isso confirma o argumento que a
 gente ia fazer no papel: as duas regras so divergem quando existe ambiguidade real, e
@@ -416,24 +416,24 @@ matching guloso, em `results/parte2/metrics.json` e `results/parte2/comparacao/`
 
 | metrica | Parte 1 (limiar + CC) | Parte 2 (fronteira + watershed) | delta |
 |---|---|---|---|
-| IoU semantico | 0.8387 | 0.8092 | **-0.0295** |
-| Dice | 0.9099 | 0.8913 | **-0.0186** |
-| mAP @[.50:.95] | 0.4542 | **0.4980** | +0.0437 |
-| AP @.50 | 0.6769 | **0.7765** | +0.0996 |
-| erro de contagem | 10.04 | **4.00** | **-6.04** |
+| IoU semantico | 0.8415 | 0.8052 | **-0.0363** |
+| Dice | 0.9120 | 0.8881 | **-0.0239** |
+| mAP @[.50:.95] | 0.4654 | **0.4972** | +0.0318 |
+| AP @.50 | 0.6931 | **0.7592** | +0.0662 |
+| erro de contagem | 10.05 | **4.10** | **-5.95** |
 
 Esse e o slide principal da Parte 2, e o que ele mostra e melhor do que so "o mAP subiu".
-**As duas metricas se movem em direcoes opostas.** O Dice piorou, de 0.9099 para 0.8913, e
+**As duas metricas se movem em direcoes opostas.** O Dice piorou, de 0.9120 para 0.8881, e
 o IoU semantico tambem. Pela metrica da aula, a Parte 2 e um modelo pior. E ao mesmo tempo
-o erro de contagem caiu **60%**, de 10 nucleos por imagem para 4, e o AP no limiar 0.50
-subiu 10 pontos.
+o erro de contagem caiu **59%**, de 10.0 nucleos por imagem para 4.1, e o AP no limiar 0.50
+subiu quase 7 pontos.
 
 Da pra explicar exatamente por que o Dice piora. A rede da Parte 2 gasta capacidade
 aprendendo uma casca de 2 px que representa 3.5% dos pixels e que, do ponto de vista
 semantico, e foreground igual ao interior. Quando ela erra pro lado de marcar fronteira
 demais, o foreground reconstruido (interior mais fronteira) fica um pouco mais magro que a
 verdade, e o Dice cai. Do ponto de vista de instancia isso e um preco baixissimo: perder
-2 pontos de Dice pra cortar 60% do erro de contagem.
+2 pontos de Dice pra cortar 59% do erro de contagem.
 
 E o motivo de a apresentacao insistir nisso e que o Dice e a metrica que a aula ensinou.
 Se a gente tivesse selecionado modelo por Dice, teria escolhido o modelo errado. Foi por
@@ -443,12 +443,12 @@ Por limiar de IoU, o perfil dos dois:
 
 | limiar | 0.50 | 0.55 | 0.60 | 0.65 | 0.70 | 0.75 | 0.80 | 0.85 | 0.90 | 0.95 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Parte 1 | 0.677 | 0.645 | 0.614 | 0.585 | 0.559 | 0.498 | 0.411 | 0.302 | 0.188 | 0.063 |
-| Parte 2 | **0.777** | **0.740** | **0.707** | **0.666** | **0.616** | **0.549** | **0.456** | 0.313 | 0.141 | 0.014 |
+| Parte 1 | 0.693 | 0.663 | 0.633 | 0.601 | 0.572 | 0.509 | 0.423 | 0.314 | 0.188 | 0.058 |
+| Parte 2 | **0.759** | **0.727** | **0.697** | **0.659** | **0.614** | **0.552** | **0.461** | **0.328** | 0.157 | 0.018 |
 
-A leitura honesta dessa tabela: o ganho esta todo nos limiares frouxos, de 0.50 a 0.80. Em
-0.90 e 0.95 a Parte 2 fica **pior** que a Parte 1 (0.141 contra 0.188 e 0.014 contra
-0.063). Faz sentido e a gente vai defender assim: o watershed decide a fronteira exata
+A leitura honesta dessa tabela: o ganho esta todo nos limiares de 0.50 a 0.85. Em
+0.90 e 0.95 a Parte 2 fica **pior** que a Parte 1 (0.157 contra 0.188 e 0.018 contra
+0.058). Faz sentido e a gente vai defender assim: o watershed decide a fronteira exata
 entre dois nucleos por um criterio geometrico (a linha de divisa entre duas bacias), e
 essa linha raramente coincide pixel a pixel com a anotacao humana. Entao a Parte 2 acerta
 muito mais objetos, mas com contorno ligeiramente pior em cada um. Componentes conexos,
@@ -460,23 +460,34 @@ paga um pouco em delineamento. Como o problema do dataset e separacao, o saldo e
 fortemente positivo.
 
 No sintetico, onde praticamente todo objeto encosta em outro, o mesmo efeito aparece muito
-mais forte: mAP de 0.1032 para 0.5036 e erro de contagem de 9.70 para 2.41.
+mais forte: mAP de 0.1032 para 0.5122 e erro de contagem de 9.70 para 2.22.
 
 ## Parte 3, ablacoes nos eixos 2 e 3
 
 Rodamos os eixos 2 (funcao de perda) e 3 (contexto global). Cada configuracao com 2
 seeds, reportando media e desvio, como o enunciado exige.
 
-As ablacoes rodam com 20 epocas em vez das 40 do modelo final. Isso nao e um corte por
-falta de compute, e uma leitura da curva de treino do modelo final: na epoca 20 ele ja
-esta em mAP de validacao 0.4766, contra 0.4780 na epoca 40. Ou seja, as ultimas 20 epocas
-valem 0.0014 de mAP, menos que o desvio entre duas seeds. Rodar 18 treinos (6 configuracoes
-no eixo 2 e 3 no eixo 3, cada uma com 2 seeds) com metade do orcamento nao muda a ordem
-das comparacoes e cabe numa sessao de GPU.
+As ablacoes rodam com 20 epocas em vez das 40 do modelo final, e sao 18 treinos ao todo
+(6 configuracoes no eixo 2 e 3 no eixo 3, cada uma com 2 seeds), 53 minutos de GPU.
 
-| epoca | 4 | 8 | 12 | 16 | **20** | 24 | 28 | 32 | 36 | 40 |
-|---|---|---|---|---|---|---|---|---|---|---|
-| mAP de validacao | 0.141 | 0.300 | 0.340 | 0.430 | **0.477** | 0.456 | 0.464 | 0.470 | 0.469 | 0.478 |
+**Uma armadilha que a gente caiu e vale contar.** A ideia inicial era justificar o corte
+dizendo "na epoca 20 o modelo final ja esta em 0.4766 de mAP contra 0.4780 na epoca 40,
+entao 20 epocas bastam". Isso esta errado, e a gente so viu comparando os numeros depois.
+O scheduler e um CosineAnnealingLR com `T_max=epochs`, entao mudar de 40 pra 20 epocas nao
+corta o treino ao meio, muda a curva inteira de learning rate: com T_max=20 a taxa ja
+chegou perto de zero na epoca 20, enquanto com T_max=40 ela ainda esta na metade. Rodando
+a mesma configuracao (focal balanceada gamma=2, seed 0) nos dois regimes:
+
+| epoca | 4 | 8 | 12 | 16 | 20 |
+|---|---|---|---|---|---|
+| dentro do schedule de 40 epocas | 0.141 | 0.300 | 0.340 | 0.430 | **0.477** |
+| com schedule de 20 epocas | 0.123 | 0.251 | 0.315 | 0.384 | **0.391** |
+
+Ou seja, as ablacoes vivem num regime pior, e **os numeros absolutos delas nao sao
+comparaveis com os do modelo final**. O que continua valendo, e e o que importa aqui, e a
+comparacao **dentro** de cada eixo: todas as configuracoes de um eixo compartilham o mesmo
+orcamento e o mesmo schedule, entao a ordem entre elas e legitima. A gente prefere deixar
+isso escrito a fingir que nao existe.
 
 Deixamos o eixo 1 (como recuperar resolucao) de fora por uma razao de metodo: pool
 indices, skip connections e atrous nao sao so tres jeitos de fazer upsample, eles mudam
@@ -530,6 +541,96 @@ encostados e uma decisao sobre dois ou tres pixels de contato, uma decisao local
 global da imagem inteira nao carrega informacao sobre onde exatamente cortar. Entao a
 expectativa e que contexto ajude pouco no mAP. Isso conversa com a analise da Parte 5.
 
+### Resultado do eixo 2
+
+Split de validacao, media e desvio sobre as seeds 0 e 1, em `results/parte3/eixo2_results.json`:
+
+| configuracao | mAP | Dice | erro de contagem |
+|---|---|---|---|
+| CE (gamma=0) | 0.4879 +- 0.023 | **0.8929** +- 0.007 | 4.96 +- 0.11 |
+| CE balanceada | 0.4189 +- 0.004 | 0.8613 +- 0.002 | **4.20** +- 0.34 |
+| focal gamma=1 | 0.4907 +- 0.020 | 0.8867 +- 0.010 | 5.00 +- 0.13 |
+| **focal gamma=2** | **0.4927** +- 0.000 | 0.8870 +- 0.006 | 4.59 +- 0.33 |
+| focal gamma=5 | 0.3965 +- 0.025 | 0.8392 +- 0.015 | 4.98 +- 0.06 |
+| focal balanceada gamma=2 | 0.3913 +- 0.012 | 0.8441 +- 0.001 | 4.40 +- 0.07 |
+
+Tres coisas, e a primeira contraria o que a gente tinha escrito antes de rodar.
+
+**Balancear piora, e nao e pouco.** CE cai de 0.4879 pra 0.4189 quando entra o alpha, e
+focal gamma=2 cai de 0.4927 pra 0.3913. Sao 0.07 e 0.10 de mAP, muito acima do desvio
+entre seeds. A gente tinha previsto o contrario, com o argumento de que a fronteira e 3.5%
+dos pixels e a CE pura ia ignorar ela.
+
+A explicacao que a gente defende, e que bate com o resto do trabalho: dar peso 1.75 pra
+fronteira faz a rede marcar fronteira **demais**, nao apenas o suficiente. A casca prevista
+engorda, o interior mais fronteira reconstruido fica mais magro que o nucleo real, e o IoU
+de cada instancia casada cai. A coluna do Dice confirma: ela cai junto (0.8929 para 0.8613
+na CE, 0.8870 para 0.8441 na focal). Ou seja, o alpha nao esta corrigindo desbalanceamento,
+esta desbalanceando pro outro lado.
+
+O detalhe que fecha o argumento e o **erro de contagem indo na direcao oposta**: com alpha
+ele melhora (4.96 para 4.20 na CE, 4.59 para 4.40 na focal). Faz sentido, porque fronteira
+mais grossa separa melhor. Entao o alpha faz exatamente o que se esperava dele, separar
+melhor, e o preco em delineamento e maior que o ganho. E o mesmo trade-off entre separar e
+delinear que apareceu na Parte 2 e que vai reaparecer na correcao da Parte 5. Se a metrica
+fosse so contagem de celulas, que e o que um biologo normalmente quer, a escolha seria a
+oposta.
+
+**gamma quase nao importa entre 0 e 2.** 0.4879, 0.4907 e 0.4927 para gamma 0, 1 e 2, com
+desvio de ate 0.023. As tres empatam. So gamma=5 quebra (0.3965), e ai a explicacao e a
+usual: com gamma tao alto quase todo pixel vira "facil" e o gradiente some.
+
+**O desvio entre seeds e pequeno**, no maximo 0.025, o que da confianca de que as
+diferencas de 0.07 e 0.10 acima sao reais e nao ruido.
+
+### Resultado do eixo 3
+
+Mesmo protocolo, variando so o modulo de contexto no topo do encoder. Em
+`results/parte3/eixo3_results.json`:
+
+| configuracao | mAP | Dice | erro de contagem |
+|---|---|---|---|
+| sem contexto | 0.3895 +- 0.012 | 0.8444 +- 0.007 | 4.45 +- 0.27 |
+| **image pooling (ParseNet)** | **0.4253** +- 0.019 | **0.8584** +- 0.012 | 4.53 +- 0.20 |
+| pyramid pooling (PSPNet) | 0.4097 +- 0.024 | 0.8532 +- 0.015 | **3.96** +- 0.19 |
+
+Antes de interpretar, uma ressalva de metodo: o eixo 3 roda em cima da perda do config
+original, que e a focal balanceada, e o eixo 2 mostrou depois que ela e uma das piores.
+Por isso o braco "sem contexto" aqui esta em 0.3895 e nao perto de 0.49. As tres barras
+compartilham essa perda, entao a comparacao entre elas continua valendo, mas o patamar
+todo esta rebaixado.
+
+**A resposta pra pergunta do enunciado**, que era se contexto global ajuda a separar
+instancias ou so a classifica-las melhor: **majoritariamente a classificar**.
+
+Os dois modulos sobem o Dice de forma consistente, +0.014 no ParseNet e +0.009 no PSPNet.
+Ou seja, os dois ajudam a decidir se um pixel e nucleo ou fundo, que e classificacao. Mas
+no erro de contagem, que e a medida direta de separacao, o ParseNet **piora** (4.45 para
+4.53) e so o PSPNet melhora (4.45 para 3.96, 11%).
+
+Isso conversa exatamente com a analise de campo receptivo da Parte 5. Media global da
+imagem inteira, que e o que o ParseNet faz, e um unico vetor por imagem: ele diz "isso aqui
+e uma lamina de fluorescencia escura" e ajuda a calibrar o limiar de foreground, mas nao
+carrega nenhuma informacao sobre **onde** cortar entre dois nucleos vizinhos, porque essa e
+uma decisao sobre dois ou tres pixels de contato. Ja o PSPNet faz pooling em grades 2x2,
+3x3 e 6x6 alem da global, e essas grades ainda tem alguma localizacao, o que explica ele
+ser o unico que mexe no erro de contagem.
+
+Resumindo pra apresentacao: contexto global melhora o mAP, mas por classificar melhor, nao
+por separar melhor. Quem separa melhor e o contexto **multi-escala**, e mesmo assim
+modestamente.
+
+### O que a Parte 3 mudou no modelo final
+
+As ablacoes nao ficaram como apendice. Duas conclusoes delas voltaram pro modelo final:
+
+1. **o alpha saiu**, porque o eixo 2 mostrou que ele custa 0.10 de mAP
+2. **a decodificacao foi calibrada na validacao** com `scripts/tune_watershed.py`, e so
+   trocar `fg_threshold` de 0.5 pra 0.7 vale +0.08 de mAP de validacao
+
+Os configs `dsb2018_final.yaml` e `dsb2018_final_ctx.yaml` sao esses, com e sem o image
+pooling, e a escolha entre os dois foi feita pelo mAP de validacao.
+
 ## Parte 4, inferencia em mosaico
 
 O slide 83 descreve a pratica padrao pra imagem grande: processa em tiles com patches
@@ -576,49 +677,64 @@ mais dificil.
 ### O resultado
 
 Mosaico de 3x3 imagens do teste (as 9 mais densas), 768x768, com 419 instancias no ground
-truth. Tile 256 com sobreposicao 64, o que da 9 tiles. Em `results/parte4/results.json`:
+truth. Rodamos com tres tamanhos de tile de proposito, porque tile menor cria mais emenda:
+com tile 256 sao 9 tiles, com tile 96 sao 81. Em `results/parte4/`.
 
-| estrategia | mAP | objetos previstos (gt 419) |
-|---|---|---|
-| full (sem tiling, referencia) | **0.3556** | 360 |
-| per_tile (slide 83 ao pe da letra) | **0.2776** | **453** |
-| blend (media de logits, decodifica uma vez) | 0.3540 | 361 |
-| fuse (decodifica por tile e costura) | 0.3435 | 359 |
+| tile / sobreposicao | full | per_tile | blend | fuse |
+|---|---|---|---|---|
+| 256 / 64 | 0.3512 | 0.2741 | **0.3527** | 0.3374 |
+| 128 / 32 | 0.3512 | 0.2061 | **0.3476** | 0.3148 |
+| 96 / 16 | 0.3512 | **0.1751** | **0.3318** | 0.2856 |
 
-O jeito ingenuo perde **0.078 de mAP**, ou seja, 22% do desempenho, so por causa do
-tiling. E o sintoma mais claro nao e nem o mAP, e a contagem: sem tiling o modelo preve
-360 objetos, com per_tile ele preve **453**. Sao 93 objetos a mais que nao existem, criados
-pelas emendas, num mosaico que tem 419 de verdade. Um modelo que subestimava a contagem
-passou a superestimar, e a causa e puramente o pos-processamento.
+E a contagem de objetos, que e onde a falha fica gritante (o ground truth tem 419):
 
-As duas correcoes recuperam quase tudo. `blend` chega a 0.3540, praticamente empatando com
-o teto de 0.3556, e `fuse` chega a 0.3435. Os dois devolvem a contagem para a faixa certa
-(361 e 359 contra 360 do full).
+| tile / sobreposicao | full | per_tile | blend | fuse |
+|---|---|---|---|---|
+| 256 / 64 | 360 | 461 | 361 | 356 |
+| 128 / 32 | 360 | 536 | 360 | 348 |
+| 96 / 16 | 360 | **621** | 356 | 337 |
 
-Olhando so nas instancias que efetivamente cruzam uma emenda (7 delas na emenda em x=224):
+Essa segunda tabela e o slide. Sem tiling o modelo preve 360 objetos, ja subestimando. Com
+o metodo do slide 83 aplicado ao pe da letra e tile 96, ele preve **621**, um excesso de
+48% sobre o ground truth. O modelo nao mudou, a rede e a mesma, os pesos sao os mesmos. Os
+261 objetos a mais foram **criados pelo pos-processamento**, sao nucleos cortados pelas
+emendas e contados duas vezes. E a degradacao e monotonica: quanto menor o tile, mais
+emenda, mais objeto fantasma e menos mAP (0.274, 0.206, 0.175).
 
-| estrategia | IoU medio do melhor par | recuperadas em IoU 0.50 |
-|---|---|---|
-| per_tile | 0.576 | 7 de 7 |
-| fuse | **0.684** | 7 de 7 |
+O `blend` e praticamente imune (0.353, 0.348, 0.332, contagem sempre perto de 360) e o
+`fuse` recupera boa parte (0.337, 0.315, 0.286).
 
-A costura melhora o IoU medio desses objetos em 11 pontos. As duas recuperam todas as 7 no
-limiar frouxo, o que e esperado: com sobreposicao de 64 px e nucleo de 20 px, poucos
-nucleos ficam realmente partidos ao meio, a maioria e so cortada de raspao. Por isso a
-gente tambem rodou com tiles menores, onde o efeito fica mais severo.
+Olhando so nas instancias que efetivamente cruzam uma emenda:
+
+| tile | instancias na emenda | IoU medio, per_tile | IoU medio, fuse | recuperadas em 0.50 |
+|---|---|---|---|---|
+| 256 | 7 | 0.516 | **0.606** | 5 e 5 |
+| 128 | 11 | 0.543 | 0.521 | 5 e 6 |
+| 96 | 14 | 0.597 | **0.657** | 10 e 12 |
+
+A costura melhora o IoU medio dessas instancias em dois dos tres casos. No tile 128 ela
+piora um pouco, e a explicacao e que a fusao por IoU as vezes une dois nucleos vizinhos de
+verdade que aparecem juntos em dois tiles, o que troca dois objetos certos por um errado.
+E o preco de decidir primeiro e consertar depois.
 
 **Por que blend ganha de fuse.** Blend faz a media antes de decidir, entao o watershed roda
-uma vez so, sobre um mapa continuo consistente na imagem inteira, e o problema de
-identidade de instancia nem chega a existir. Fuse decide primeiro e conserta depois, e
-conserto depois de uma decisao errada nunca recupera tudo: se o watershed ja cortou um
-nucleo ao meio dentro de um tile, unir os dois pedacos devolve a area mas nao devolve o
-contorno que teria saido de uma decisao unica.
+uma vez so sobre um mapa continuo consistente na imagem inteira, e o problema de identidade
+de instancia nem chega a existir. Fuse decide primeiro e conserta depois, e conserto depois
+de uma decisao errada nunca recupera tudo: se o watershed ja cortou um nucleo ao meio dentro
+de um tile, unir os dois pedacos devolve a area mas nao devolve o contorno que teria saido
+de uma decisao unica.
 
 A conclusao que vale pra apresentacao e que o slide 83 esta certo, mas o "faca a media dos
 resultados" precisa ser lido como **media da saida densa da rede, antes de decodificar**, e
 nao media do resultado final. Pra segmentacao semantica os dois sao a mesma coisa, porque
-nao existe passo de decodificacao. Pra instancia sao coisas completamente diferentes, e e
-essa distincao que o PA queria que a gente descobrisse na pratica.
+nao existe passo de decodificacao. Pra instancia sao coisas completamente diferentes.
+
+E vale notar a ironia: o unico motivo de o `blend` existir e que a nossa representacao e
+densa. Um detector com proposta de regiao, que e o que o PA proibiu, nao teria esse caminho,
+porque nao existe media entre duas caixas propostas em tiles diferentes, so NMS, que e
+justamente uma forma de fusao como a nossa e sofre do mesmo problema. Ou seja, a proibicao
+do enunciado nos empurrou pra representacao que torna o problema do tiling **mais facil**,
+nao mais dificil.
 
 ## Parte 5, campo receptivo teorico e galeria de falhas
 
@@ -699,6 +815,89 @@ e menor que o diametro de um nucleo. O ganho de campo receptivo que vem junto (8
 defender na apresentacao: o mesmo mecanismo do slide 40, mas o beneficio dele aqui e o
 efeito colateral, nao o efeito anunciado.
 
+### A galeria de falhas
+
+As cinco piores imagens do teste estao em `results/parte5/failure_1.png` a `failure_5.png`,
+cada uma com imagem, ground truth, predicao e os quatro mapas intermediarios (foreground,
+interior, fronteira e distancia), que e o que o enunciado pede. Os numeros que sustentam o
+diagnostico de cada uma:
+
+| # | imagem | AP | gt | previstas | fundidas | fragmentadas | diametro mediano |
+|---|---|---|---|---|---|---|---|
+| 1 | 942d56861f | 0.037 | 51 | 54 | 0 | 0 | 16 px |
+| 2 | 3a3fee427e | 0.091 | 56 | 56 | 2 | 2 | 18 px |
+| 3 | 13c8ff1f49 | 0.112 | 17 | 14 | 2 | 0 | 13 px |
+| 4 | ad473063da | 0.113 | 84 | 60 | **18** | 0 | 12 px |
+| 5 | 358e47eaa1 | 0.134 | 52 | 54 | 2 | 2 | 19 px |
+
+O padrao salta aos olhos: **as cinco tem nucleo pequeno**, de 12 a 19 px de diametro
+mediano, contra 19.4 px da mediana do dataset, e quatro das cinco sao imagens densas, com
+51 a 84 nucleos. O caso 1 e o mais instrutivo, porque ele nao tem nenhuma fusao nem
+fragmentacao (a contagem quase bate, 54 contra 51) e mesmo assim tira AP 0.037. Ou seja,
+ele achou quase o numero certo de objetos e errou o **contorno** de praticamente todos.
+Isso e falha de delineamento, nao de separacao, e e um modo de erro diferente do que a
+Parte 1 tinha.
+
+O caso 4 e o oposto e e o modo de falha classico: 84 nucleos verdadeiros, 60 previstos, 18
+instancias previstas cobrindo dois ou mais nucleos de verdade. E o aglomerado denso onde a
+casca de 2 px entre nucleos simplesmente nao foi prevista.
+
+### O diagnostico, com o numero do erro no split inteiro
+
+Somando os quatro modos de erro nas 101 imagens de teste, nos dois modelos
+(`results/parte5/results.json` e `results/parte1/../part5_failures/results.json`):
+
+| modo de erro | Parte 1 (limiar + CC) | Parte 2 (fronteira + watershed) |
+|---|---|---|
+| fusoes (uma previsao cobre 2+ nucleos) | **582** | **260** |
+| fragmentacoes (2+ previsoes num nucleo) | 4 | **67** |
+| nucleos nao achados | 1505 | **886** |
+| previsoes espurias | 510 | 550 |
+
+Essa tabela e a versao quantitativa do que a Parte 2 prometeu. A trilha A **cortou as
+fusoes em 55%**, de 582 pra 260, que era exatamente o objetivo. E o preco esta na linha de
+baixo: a fragmentacao, que praticamente nao existia na Parte 1 (4 casos), subiu pra 67. E
+o modo de falha novo que a representacao introduz, quando o interior previsto racha em dois
+marcadores e o watershed corta um nucleo saudavel ao meio. Trocamos 322 fusoes por 63
+fragmentacoes, o que e um bom negocio, mas nao e de graca.
+
+### A correcao, e o que ela revelou
+
+O diagnostico da secao anterior diz que o problema nao e campo receptivo, e resolucao: com
+output stride 32 um nucleo de 19 px cabe dentro de uma celula do mapa mais profundo. A
+mudanca que isso sugere e direta e e o mecanismo do slide 40: dilatar o layer4 pra levar o
+output stride de 32 pra 16, sem adicionar parametro nenhum. Esta em
+`configs/dsb2018_boundary_os16.yaml`, e o antes/depois no mesmo split de teste:
+
+| metrica | output stride 32 | output stride 16 | mudou |
+|---|---|---|---|
+| mAP @[.50:.95] | **0.4972** | 0.4830 | pior |
+| AP @.50 | 0.7592 | **0.7742** | melhor |
+| AP @.90 | **0.157** | 0.121 | pior |
+| Dice | 0.8881 | 0.8857 | igual |
+| erro de contagem | 4.10 | **3.77** | melhor |
+| fusoes | 260 | **251** | melhor |
+| nucleos nao achados | 886 | **798** | melhor |
+| fragmentacoes | **67** | 71 | pior |
+
+**A correcao funcionou no que o diagnostico previa e falhou no total.** Todas as medidas de
+separacao melhoraram: AP no limiar frouxo subiu 1.5 ponto, o erro de contagem caiu 8%, as
+fusoes cairam e os nucleos nao achados cairam 10%. Mas o mAP agregado caiu 0.014, porque os
+limiares severos (0.90 e 0.95) pioraram.
+
+O que isso revela, e e a parte interessante: o diagnostico estava **certo sobre o
+mecanismo e incompleto sobre a consequencia**. Ele previa que mais resolucao no topo do
+encoder ajudaria a separar, e ajudou. O que ele nao considerou e que dilatar o layer4
+introduz o efeito de gridding do atrous (o filtro passa a amostrar pixels alternados, e
+pixels vizinhos passam a ser processados por conjuntos disjuntos de pesos), o que degrada o
+contorno fino. Separacao melhora, delineamento piora, e como o mAP media dez limiares de
+IoU, sendo metade deles severos, o delineamento domina o agregado.
+
+Vale notar que esse e o **terceiro** lugar do trabalho onde aparece o mesmo trade-off entre
+separar e delinear: a Parte 2 contra a Parte 1, o alpha do eixo 2, e agora o output stride.
+Nos tres casos a mesma tensao, e nos tres a metrica agregada esconde o que esta acontecendo.
+Se o objetivo fosse contar celulas, as tres decisoes seriam tomadas na direcao oposta.
+
 ## Parte 6, teste de estresse por corrupcao
 
 Escolhemos a opcao das corrupcoes, entre as tres oferecidas, porque e a unica que produz
@@ -722,6 +921,62 @@ localizaria o dano na cabeca de fronteira e nao no reconhecimento.
 A previsao a confrontar: blur deveria ser o pior dos tres, porque a classe fronteira e
 uma casca de 2 px e um blur de sigma 4 destroi literalmente a estrutura que a rede
 precisa prever. Ruido e brilho nao atacam a geometria, so o contraste.
+
+### O resultado
+
+Split de teste inteiro, modelo da trilha A. Em `results/parte6/results.json` e a curva em
+`results/parte6/degradation.png`:
+
+| corrupcao | intensidade | mAP | Dice | erro de contagem |
+|---|---|---|---|---|
+| nenhuma | 0 | 0.4972 | 0.8881 | 4.10 |
+| ruido | 1 | **0.5145** | **0.8990** | 4.37 |
+| ruido | 2 | 0.4328 | 0.8725 | 4.93 |
+| ruido | 3 | 0.3286 | 0.8312 | 5.75 |
+| blur | 1 | 0.4265 | 0.8582 | 4.16 |
+| blur | 2 | 0.2594 | 0.7536 | 5.13 |
+| blur | 3 | 0.1731 | 0.6346 | 8.35 |
+| brilho e contraste | 1 | 0.4452 | 0.8701 | 4.39 |
+| brilho e contraste | 2 | 0.2412 | 0.6692 | 10.15 |
+| brilho e contraste | 3 | **0.0931** | **0.3499** | **24.06** |
+
+Tres coisas, e as duas primeiras contrariam o que a gente tinha previsto.
+
+**Ruido leve melhora o modelo.** Com intensidade 1 o mAP sobe de 0.4972 pra 0.5145 e o Dice
+de 0.8881 pra 0.8990. Nao e ruido de medicao, sao 101 imagens e o efeito aparece nas duas
+metricas. A explicacao e que `A.GaussNoise` esta no augment de treino, entao ruido leve e
+dentro da distribuicao que a rede viu, e adicionar um pouco funciona como leve
+regularizacao na inferencia. E um lembrete util: "corrupcao" nao e sinonimo de "pior", o
+que importa e a distancia pra distribuicao de treino, nao a degradacao perceptual.
+
+**Blur nao e o pior, brilho e contraste e.** A gente tinha previsto blur como o pior,
+porque a classe fronteira e uma casca de 2 px e um blur de sigma 4 destroi a estrutura que a
+rede precisa prever. Blur 3 de fato derruba pra 0.1731, mas brilho e contraste 3 derruba pra
+**0.0931**, quase o dobro de dano. O motivo aparece na coluna do Dice: com brilho 3 o Dice
+desaba pra 0.3499, ou seja, o modelo perde o objeto inteiro, nao so a separacao. Ganho 0.35
+com vies -40 achata a imagem quase toda numa faixa estreita de cinza escuro, e o encoder
+pre-treinado na ImageNet nunca viu nada assim. O augment de treino tem brilho e contraste,
+mas com limite 0.25, muito mais suave que os 0.65 da intensidade 3.
+
+**A terceira leitura e a que responde a pergunta de projeto**, e sai de olhar mAP e Dice
+juntos, que e o motivo de a tabela ter as duas colunas:
+
+| corrupcao intensidade 3 | queda do Dice | queda do mAP | razao |
+|---|---|---|---|
+| ruido | -6% | -34% | **5.6x** |
+| blur | -29% | -65% | 2.3x |
+| brilho e contraste | -61% | -81% | 1.3x |
+
+Com ruido o Dice quase nao se mexe (cai 6%) e o mAP cai 34%. Ou seja, sob ruido o modelo
+**continua enxergando os nucleos e perde a capacidade de separa-los**. Isso localiza a
+fragilidade exatamente onde a gente esperava: na cabeca de fronteira, que precisa acertar
+uma casca de 2 px e e por construcao a parte mais fina e mais sensivel da representacao.
+Com brilho e contraste a razao vai pra 1.3, ou seja, ali o dano e generalizado, o modelo
+perde tudo junto.
+
+O custo pratico dessa fragilidade esta na ultima coluna da tabela grande: com brilho e
+contraste 3 o erro de contagem vai de 4 pra **24 nucleos por imagem**, que e mais do que a
+Parte 1 errava na imagem limpa.
 
 <!-- ANCORA_RESULTADOS -->
 

@@ -53,9 +53,18 @@ def main():
     ap.add_argument("--device", default=None)
     ap.add_argument("--out-dir", default=None)
     ap.add_argument("--panels", type=int, default=4)
+    # sobrescrevem o bloco postprocess: do config, pra medir o efeito da calibracao sem
+    # ter que criar um yaml novo pra cada combinacao
+    ap.add_argument("--interior-threshold", type=float, default=None)
+    ap.add_argument("--fg-threshold", type=float, default=None)
+    ap.add_argument("--min-size", type=int, default=None)
     args = ap.parse_args()
 
     cfg = load_config(args.config)
+    for key, value in [("interior_threshold", args.interior_threshold),
+                       ("fg_threshold", args.fg_threshold), ("min_size", args.min_size)]:
+        if value is not None:
+            cfg.setdefault("postprocess", {})[key] = value
     seed_everything(int(cfg.get("seed", 0)))
     device = get_device(args.device or cfg.get("device", "auto"))
 

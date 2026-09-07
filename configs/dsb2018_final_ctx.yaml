@@ -1,0 +1,69 @@
+# Igual ao dsb2018_final.yaml mais o vencedor do eixo 3, image pooling do ParseNet
+# (slides 51 e 52), que deu +0.036 de mAP e +0.014 de Dice sobre o braco sem contexto.
+#
+# Vale dizer que o eixo 3 rodou em cima da perda balanceada, que o eixo 2 depois mostrou
+# ser ruim, entao nao e obvio que o ganho do contexto sobrevive quando o alpha sai. E
+# justamente por isso que esse config existe: pra medir em vez de supor.
+data:
+  boundary_thickness: 2
+  crop: 256
+  fractions:
+  - 0.7
+  - 0.15
+  - 0.15
+  n_clusters: 4
+  
+#
+# O bloco postprocess vem de scripts/tune_watershed.py na validacao, nao de chute:
+# fg_threshold 0.7 em vez de 0.5 sozinho vale +0.08 de mAP de validacao.
+data:
+  boundary_thickness: 2
+  crop: 256
+  fractions:
+  - 0.7
+  - 0.15
+  - 0.15
+  n_clusters: 4
+  name: dsb2018
+  root: data/dsb2018/stage1_train
+  split_seed: 0
+device: auto
+epochs: 40
+eval_every: 4
+loader:
+  batch_size: 16
+  num_workers: 2
+matching: greedy
+model:
+  context: image_pooling
+  decoder_channels:
+  - 256
+  - 128
+  - 64
+  - 32
+  - 16
+  encoder_name: resnet34
+  in_channels: 3
+  name: unet
+  pretrained: true
+  skip: true
+name: dsb2018_final_ctx
+optimizer:
+  lr: 0.0003
+  weight_decay: 0.0001
+output_dir: runs/dsb2018_final_ctx
+postprocess:
+  interior_threshold: 0.5
+  fg_threshold: 0.7
+  min_size: 20
+  min_marker_size: 4
+seed: 0
+task:
+  distance_loss_cfg:
+    kind: l1
+    name: regression
+  distance_weight: 1.0
+  loss_cfg:
+    gamma: 2.0
+    name: focal
+  name: boundary
