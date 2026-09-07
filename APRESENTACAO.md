@@ -248,6 +248,10 @@ Resultado no split de teste (101 imagens), em `results/parte1/metrics.json`:
 | AP @.50 | 0.6931 |
 | erro absoluto de contagem | **10.05 nucleos por imagem** |
 
+(esses numeros sao com a decodificacao padrao, limiar 0.5. Calibrando o limiar na
+validacao, como a gente faz na Parte 2 pros dois modelos, o baseline sobe pra mAP 0.5351 e
+erro de contagem 8.57. A comparacao justa esta na Parte 2.)
+
 Por limiar de IoU, que e o que mostra onde a coisa desmonta:
 
 | limiar | 0.50 | 0.55 | 0.60 | 0.65 | 0.70 | 0.75 | 0.80 | 0.85 | 0.90 | 0.95 |
@@ -257,16 +261,19 @@ Por limiar de IoU, que e o que mostra onde a coisa desmonta:
 ### Quanto desse erro e da rede e quanto e do decodificador
 
 Comparando com o teto de oraculo medido antes: o decodificador ingenuo, alimentado com a
-mascara perfeita, daria 0.766 nesse mesmo split. O modelo entrega 0.465. Ou seja, dos
-0.535 de mAP que faltam pro maximo, cerca de **0.30 e culpa da rede** (mascara semantica
-imperfeita) e **0.23 e culpa do decodificador** (fusao de nucleos encostados que nem uma
-mascara perfeita resolveria).
+mascara perfeita, daria 0.766 nesse mesmo split. Esse mesmo modelo, com o limiar calibrado
+na validacao (ver a Parte 2), entrega 0.535. Entao o erro se reparte quase ao meio:
+
+| de onde vem | quanto | por que |
+|---|---|---|
+| culpa da rede | 0.766 - 0.535 = **0.231** | a mascara semantica nao e perfeita |
+| culpa do decodificador | 1.000 - 0.766 = **0.234** | nucleo encostado que nem mascara perfeita separa |
 
 Isso e diferente do que acontece no sintetico, onde a rede satura o teto (0.102 medido
 contra 0.102 de teto) e o erro e 100% do decodificador. E uma nuance que a gente so viu
 depois de medir os dois, e ela importa pra Parte 2: no DSB2018 a mudanca de representacao
-ataca a metade menor do problema, e mesmo assim ganha, porque a metade que ela ataca e a
-que a metrica de instancia castiga mais.
+ataca metade do problema, nao o problema todo, e por isso o ganho aqui e menor que no
+sintetico. Nao e o metodo funcionando pior, e ele atacando uma fracao menor do erro.
 
 O numero que mais importa aqui e o erro de contagem: **10 nucleos de erro por imagem**,
 num dataset onde a mediana e algo em torno de 25 nucleos por imagem. Com Dice de 0.91,
@@ -445,6 +452,10 @@ Por limiar de IoU, o perfil dos dois:
 |---|---|---|---|---|---|---|---|---|---|---|
 | Parte 1 | 0.693 | 0.663 | 0.633 | 0.601 | 0.572 | 0.509 | 0.423 | 0.314 | 0.188 | 0.058 |
 | Parte 2 | **0.759** | **0.727** | **0.697** | **0.659** | **0.614** | **0.552** | **0.461** | **0.328** | 0.157 | 0.018 |
+
+Esses numeros sao com os limiares de decodificacao no chute, 0.5 pra tudo, que foi como a
+gente rodou primeiro. A secao seguinte mostra que isso estava deixando bastante desempenho
+na mesa nos **dois** modelos, e refaz a comparacao direito.
 
 ### A calibracao da decodificacao, e por que ela quase nos fez errar a analise
 

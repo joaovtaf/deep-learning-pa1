@@ -66,6 +66,15 @@ O checkpoint salvo e o de melhor mAP de validacao, nao o de menor loss. Isso imp
 porque da pra ter Dice quase 1 e mAP de instancia pessimo, que e justamente o que a
 Parte 1 quer mostrar.
 
+Depois de treinar, vale calibrar a decodificacao na validacao antes de medir no teste:
+
+```
+uv run python scripts/tune_watershed.py --config configs/dsb2018_boundary.yaml --checkpoint runs/dsb2018_boundary/best.pt
+```
+
+So isso vale uns 0.08 de mAP nos dois modelos, sem mexer em peso nenhum. Os limiares que
+sairam dessa varredura ja estao nos configs `dsb2018_final*.yaml`.
+
 ## Avaliar
 
 Um comando avalia:
@@ -112,6 +121,19 @@ uv run python scripts/part6_stress.py   --config configs/dsb2018_boundary.yaml -
 
 Os numeros da apresentacao estao todos em APRESENTACAO.md, cada um apontando pro
 arquivo em `runs/` de onde saiu.
+
+## Checkpoint
+
+O peso do modelo final tem 93 MB, que nao cabe confortavelmente num commit, entao ele esta
+como dataset privado do Kaggle:
+
+    https://www.kaggle.com/datasets/joaovtaf/pa1-checkpoint
+
+Baixa e poe em `runs/dsb2018_boundary/best.pt` (o `dsb2018_baseline.pt` do mesmo dataset e
+o baseline da Parte 1, se quiser reproduzir a comparacao). Ou treina do zero, que leva 6
+minutos numa GPU.
+
+    kaggle datasets download -d joaovtaf/pa1-checkpoint -p runs --unzip
 
 ## Inferencia
 
