@@ -104,6 +104,7 @@ class DSB2018Dataset(Dataset):
 
     def __getitem__(self, idx):
         image, labels = self.raw(idx)
+        orig_shape = labels.shape  # guarda antes do padding, senao teria que reler o PNG
 
         if self.split == "train":
             out = self.tf(image=image, mask=labels)
@@ -121,5 +122,5 @@ class DSB2018Dataset(Dataset):
             "three": torch.from_numpy(three_class_mask(labels, self.boundary_thickness).astype(np.int64)),
             "dist": torch.from_numpy(distance_map(labels)[None]),
             "image_id": self.image_ids[idx],
-            "orig_size": torch.tensor(self.raw(idx)[1].shape),
+            "orig_size": torch.tensor(orig_shape),
         }
