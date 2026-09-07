@@ -12,6 +12,7 @@ from ..data.synthetic import SyntheticEllipsesDataset
 def build_datasets(cfg: dict) -> dict[str, Dataset]:
     cfg = dict(cfg)
     name = cfg.pop("name").lower()
+    thickness = cfg.get("boundary_thickness", 2)
 
     if name == "synthetic":
         counts = cfg.get("lengths", {"train": 512, "val": 64, "test": 128})
@@ -23,6 +24,7 @@ def build_datasets(cfg: dict) -> dict[str, Dataset]:
                 seed=seeds[split],
                 n_range=tuple(cfg.get("n_range", (5, 20))),
                 radius_range=tuple(cfg.get("radius_range", (5, 18))),
+                boundary_thickness=thickness,
             )
             for split in ("train", "val", "test")
         }
@@ -35,8 +37,15 @@ def build_datasets(cfg: dict) -> dict[str, Dataset]:
             n_clusters=cfg.get("n_clusters", 4),
             seed=cfg.get("split_seed", 0),
         )
+        limit = cfg.get("limit")  # so pra debug rapido
         return {
-            split: DSB2018Dataset(splits[split], root=root, split=split, crop=cfg.get("crop", 256))
+            split: DSB2018Dataset(
+                splits[split][:limit] if limit else splits[split],
+                root=root,
+                split=split,
+                crop=cfg.get("crop", 128),
+                boundary_thickness=thickness,
+            )
             for split in ("train", "val", "test")
         }
 
@@ -50,12 +59,12 @@ def build_loaders(datasets: dict[str, Dataset], cfg: dict) -> dict[str, DataLoad
     return {
         "train": DataLoader(
             datasets["train"],
-            batch_size=cfg.get("batch_size", 8),
+            batch_size=cfg.get("batch_size", 16),
             shuffle=True,
             num_workers=num_workers,
             drop_last=True,
             persistent_workers=num_workers > 0,
         ),
-        "val": DataLoader(datasets["val"], batch_size=1, shuffle=False, num_workers=num_workers),
-        "test": DataLoader(datasets["test"], batch_size=1, shuffle=False, num_workers=num_workers),
+        "val": DataLoader(datasets["val"], batch_size=1, shuffle=False, num_workers=0),
+        "test": DataLoader(datasets["test"], batch_size=1, shuffle=False, num_workers=0),
     }

@@ -70,3 +70,18 @@ class AverageMeter:
     @property
     def avg(self) -> float:
         return self.total / max(self.count, 1)
+
+
+def as_rgb_uint8(image) -> np.ndarray:
+    """Normaliza o que sai de dataset.raw().
+
+    O sintetico devolve float 2D em [0,1] e o DSB2018 devolve uint8 RGB. Tudo que
+    consome imagem crua (tiling da Parte 4, corrupcoes da Parte 6) quer o mesmo
+    formato, entao a conversao mora num lugar so.
+    """
+    x = np.asarray(image)
+    if x.dtype != np.uint8:
+        x = np.clip(x * 255.0 if x.max() <= 1.0 else x, 0, 255).astype(np.uint8)
+    if x.ndim == 2:
+        x = np.repeat(x[..., None], 3, axis=2)
+    return x
