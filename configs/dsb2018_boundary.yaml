@@ -1,0 +1,55 @@
+# Parte 2, trilha A. Mesmo encoder-decoder da Parte 1, muda so o que a rede preve:
+# 3 classes (fundo / interior / fronteira) mais um mapa de distancia, decodificado
+# por watershed com os interiores como marcador.
+name: dsb2018_boundary
+seed: 0
+device: auto
+epochs: 40
+output_dir: runs/dsb2018_boundary
+matching: greedy
+eval_every: 4
+
+data:
+  name: dsb2018
+  root: data/dsb2018/stage1_train
+  crop: 256
+  fractions: [0.7, 0.15, 0.15]
+  n_clusters: 4        # k-means de cor usado como proxy de modalidade pro split
+  split_seed: 0
+  boundary_thickness: 2
+
+loader:
+  batch_size: 16
+  num_workers: 2
+
+model:
+  name: unet
+  encoder_name: resnet34
+  in_channels: 3
+  decoder_channels: [256, 128, 64, 32, 16]
+  skip: true
+  pretrained: true
+  context: none
+
+task:
+  name: boundary
+  loss_cfg:
+    name: focal
+    gamma: 2.0
+    # alpha calibrado pela frequencia das 3 classes no treino, ver
+    # scripts/class_stats.py. fronteira e a minoritaria e leva o maior peso.
+    alpha: [0.45, 0.80, 1.75]
+  distance_loss_cfg:
+    name: regression
+    kind: l1
+  distance_weight: 1.0
+
+optimizer:
+  lr: 0.0003
+  weight_decay: 0.0001
+
+postprocess:
+  interior_threshold: 0.5
+  fg_threshold: 0.5
+  min_size: 20
+  min_marker_size: 4

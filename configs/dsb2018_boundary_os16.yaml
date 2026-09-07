@@ -1,0 +1,64 @@
+# Parte 5, a correcao. Mesma coisa do dsb2018_boundary.yaml, mudando so o output
+# stride do encoder de 32 pra 16 (atrous no layer4, slides 39 a 42).
+#
+# O diagnostico que essa config testa: o campo receptivo teorico do ResNet34 e 899 px e
+# o nucleo mediano tem 20.7 px, entao campo receptivo nao pode ser o problema. O que e
+# problema e o output stride 32, que faz um nucleo inteiro caber dentro de uma celula do
+# feature map mais profundo. Dilatando o layer4, o stride cai pra 16 sem adicionar um
+# peso sequer e sem perder campo receptivo.
+name: dsb2018_boundary_os16
+seed: 0
+device: auto
+epochs: 40
+output_dir: runs/dsb2018_boundary_os16
+matching: greedy
+eval_every: 4
+data:
+  name: dsb2018
+  root: data/dsb2018/stage1_train
+  crop: 256
+  fractions:
+  - 0.7
+  - 0.15
+  - 0.15
+  n_clusters: 4
+  split_seed: 0
+  boundary_thickness: 2
+loader:
+  batch_size: 16
+  num_workers: 2
+model:
+  name: unet
+  encoder_name: resnet34
+  in_channels: 3
+  decoder_channels:
+  - 256
+  - 128
+  - 64
+  - 32
+  - 16
+  skip: true
+  pretrained: true
+  context: none
+  output_stride: 16
+task:
+  name: boundary
+  loss_cfg:
+    name: focal
+    gamma: 2.0
+    alpha:
+    - 0.45
+    - 0.8
+    - 1.75
+  distance_loss_cfg:
+    name: regression
+    kind: l1
+  distance_weight: 1.0
+optimizer:
+  lr: 0.0003
+  weight_decay: 0.0001
+postprocess:
+  interior_threshold: 0.5
+  fg_threshold: 0.5
+  min_size: 20
+  min_marker_size: 4

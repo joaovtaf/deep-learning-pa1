@@ -1,9 +1,9 @@
-# Parte 0, teste unitario sintetico. Tem que treinar em menos de 5 minutos.
-name: synthetic_baseline
+# Parte 0 com a cabeca da Parte 2, pra provar que o watershed tambem cabe em 5 min.
+name: synthetic_boundary
 seed: 0
 device: auto
 epochs: 12
-output_dir: runs/synthetic_baseline
+output_dir: runs/synthetic_boundary
 matching: greedy
 
 data:
@@ -31,16 +31,22 @@ model:
   context: none
 
 task:
-  name: binary
+  name: boundary
   loss_cfg:
-    name: bce_dice
-    bce_weight: 1.0
-    dice_weight: 1.0
+    name: focal
+    gamma: 2.0
+    alpha: [0.35, 0.85, 1.80]
+  distance_loss_cfg:
+    name: regression
+    kind: l1
+  distance_weight: 1.0
 
 optimizer:
   lr: 0.001
   weight_decay: 0.0001
 
 postprocess:
-  threshold: 0.5
+  interior_threshold: 0.5
+  fg_threshold: 0.5
   min_size: 10
+  min_marker_size: 4
