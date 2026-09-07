@@ -19,9 +19,15 @@ decisao de projeto nossa:
 2. qual perda otimiza aquilo
 3. como a previsao vira objeto, ou seja, o pos-processamento
 
-A tese que a gente defende na apresentacao e que o gargalo esta inteiramente em 1 e 3,
-e que 2 e um ajuste fino em cima. A evidencia mais forte disso e o experimento de
-oraculo da secao seguinte, que a gente conseguiu rodar antes de treinar qualquer rede.
+A tese que a gente defende e que a decisao 1 (o que a rede preve) e a que manda, e que a
+2 (a perda) e ajuste fino em cima. A evidencia principal e o experimento de oraculo mais
+adiante, que da pra rodar antes de treinar qualquer rede.
+
+Uma ressalva que a gente so descobriu medindo, e que vale dizer logo: no dataset sintetico
+o gargalo e 100% a representacao, mas no DSB2018 real a rede tambem limita. O modelo da
+Parte 1 tira 0.454 de mAP contra um teto de 0.766 do proprio decodificador dele. Entao no
+real as duas coisas estao apertando ao mesmo tempo, e a gente escreveu a analise nesse
+sentido em vez de forcar a tese mais simples.
 
 ## Dataset e split
 
@@ -247,6 +253,20 @@ Por limiar de IoU, que e o que mostra onde a coisa desmonta:
 | limiar | 0.50 | 0.55 | 0.60 | 0.65 | 0.70 | 0.75 | 0.80 | 0.85 | 0.90 | 0.95 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | precisao | 0.677 | 0.645 | 0.614 | 0.585 | 0.559 | 0.498 | 0.411 | 0.302 | 0.188 | 0.063 |
+
+### Quanto desse erro e da rede e quanto e do decodificador
+
+Comparando com o teto de oraculo medido antes: o decodificador ingenuo, alimentado com a
+mascara perfeita, daria 0.766 nesse mesmo split. O modelo entrega 0.454. Ou seja, dos
+0.546 de mAP que faltam pro maximo, cerca de **0.31 e culpa da rede** (mascara semantica
+imperfeita) e **0.23 e culpa do decodificador** (fusao de nucleos encostados que nem uma
+mascara perfeita resolveria).
+
+Isso e diferente do que acontece no sintetico, onde a rede satura o teto (0.102 medido
+contra 0.102 de teto) e o erro e 100% do decodificador. E uma nuance que a gente so viu
+depois de medir os dois, e ela importa pra Parte 2: no DSB2018 a mudanca de representacao
+ataca a metade menor do problema, e mesmo assim ganha, porque a metade que ela ataca e a
+que a metrica de instancia castiga mais.
 
 O numero que mais importa aqui e o erro de contagem: **10 nucleos de erro por imagem**,
 num dataset onde a mediana e algo em torno de 25 nucleos por imagem. Com Dice de 0.91,
