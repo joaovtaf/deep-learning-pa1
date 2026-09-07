@@ -177,20 +177,13 @@ O mesmo experimento em 24 imagens sinteticas esta como teste em
 e trava se alguem quebrar a geracao de alvo. Nessas 24, em 24 de 24 o componentes conexos
 funde pelo menos duas elipses.
 
-Isso e o slide mais importante da apresentacao. Com a **mascara semantica perfeita**, ou
-seja, com uma rede que nao erra um pixel sequer, o metodo da Parte 1 entrega 0.102 de
-mAP. Nenhum treino, nenhum encoder, nenhuma perda melhora isso, porque a informacao que
-separa dois nucleos encostados simplesmente nao existe numa mascara binaria: eles formam
-um unico blob conexo. Trocar o que a rede preve leva o teto de 0.102 pra 0.831, um fator
-de oito, com a mesma arquitetura.
-
-O bug numero dois apareceu aqui. O teto do watershed dava 0.74, nao 0.83, e a gente foi
-investigar imagem por imagem esperando um erro no watershed. O culpado eram instancias
-de 6 a 8 pixels, restos de elipses quase totalmente enterradas por outra desenhada por
-cima. Lasca de 6 pixels nao e objeto, ninguem casa com ela e ela puxava a metrica
-inteira. Colocamos um filtro de area minima no gerador e o teto subiu pra 0.831. Vale
-contar porque e um caso de a metrica estar certa e o dataset estar errado, e a gente
-quase mexeu no lugar errado.
+**O bug numero dois apareceu aqui.** Na primeira versao do gerador o teto do watershed dava
+0.74 em vez de 0.83 nas 24 imagens de teste, e a gente foi investigar imagem por imagem
+esperando achar um erro no watershed. O culpado eram instancias de 6 a 8 pixels, restos de
+elipses quase totalmente enterradas por outra desenhada por cima. Lasca de 6 pixels nao e
+objeto, ninguem casa com ela, e ela puxava a metrica inteira pra baixo. Colocamos um filtro
+de area minima no gerador e o teto subiu. Vale contar porque e um caso de a metrica estar
+certa e o **dataset** estar errado, e a gente quase foi mexer no lugar errado.
 
 ### O teste unitario propriamente dito
 
@@ -269,8 +262,9 @@ na validacao (ver a Parte 2), entrega 0.535. Entao o erro se reparte quase ao me
 | culpa da rede | 0.766 - 0.535 = **0.231** | a mascara semantica nao e perfeita |
 | culpa do decodificador | 1.000 - 0.766 = **0.234** | nucleo encostado que nem mascara perfeita separa |
 
-Isso e diferente do que acontece no sintetico, onde a rede satura o teto (0.102 medido
-contra 0.102 de teto) e o erro e 100% do decodificador. E uma nuance que a gente so viu
+Isso e diferente do que acontece no sintetico, onde a rede praticamente satura o teto
+(0.103 medido contra 0.115 de teto do componentes conexos) e quase todo o erro e do
+decodificador. E uma nuance que a gente so viu
 depois de medir os dois, e ela importa pra Parte 2: no DSB2018 a mudanca de representacao
 ataca metade do problema, nao o problema todo, e por isso o ganho aqui e menor que no
 sintetico. Nao e o metodo funcionando pior, e ele atacando uma fracao menor do erro.
