@@ -647,28 +647,37 @@ Para o encoder do modelo final, ResNet34, por estagio:
 
 E comparando encoders e a variante atrous, todos na mesma conta:
 
-| encoder | campo receptivo | output stride |
-|---|---|---|
-| ResNet18 | 435 px | 32 |
-| ResNet18, atrous no layer4 | 467 px | 16 |
-| ResNet18, atrous no layer3 e layer4 | 483 px | 8 |
-| ResNet34 | 899 px | 32 |
+| encoder | campo receptivo | output stride | parametros |
+|---|---|---|---|
+| **ResNet34** (o nosso) | 899 px | **32** | 24.44M |
+| ResNet34, atrous no layer4 | 931 px | **16** | 24.44M |
+| ResNet34, atrous no layer3 e layer4 | 947 px | **8** | 24.44M |
+| ResNet18 | 435 px | 32 | |
+| ResNet18, atrous no layer4 | 467 px | 16 | |
+
+A coluna de parametros e o argumento do slide 39 verificado na pratica: dilatar nao
+adiciona um peso sequer, o filtro e o mesmo com buraco no meio. O que muda e so a
+resolucao do mapa de saida. Uma pegadinha de implementacao: o `BasicBlock` do torchvision
+(que e o bloco da ResNet18 e da ResNet34) recusa `replace_stride_with_dilation`, so o
+`Bottleneck` aceita, entao a gente aplicou a dilatacao nas convs na mao em
+`src/pa1/models/encoders.py`.
 
 ### A comparacao com o tamanho dos objetos, e a surpresa
 
-Os nucleos do DSB2018 (9367 instancias medidas no treino) tem diametro equivalente
-mediano de **21.9 px de media e 20.7 px de mediana**, p95 de 48.8 px, p99 de 59.0 px e
-maximo de 87.7 px.
+Os nucleos do DSB2018 tem diametro equivalente mediano de **19.4 px** no split de teste
+(4371 instancias), p95 de 47.8 px e maximo de 93.4 px. No treino (9367 instancias) a
+mediana e 20.7 px, a media 21.9 px e o maximo 87.7 px. Ou seja, os dois splits contam a
+mesma historia, e o histograma esta em `results/parte5/receptive_field.png`.
 
 Confrontando com a tabela acima, o diagnostico que o proprio enunciado da como exemplo
 ("o objeto tem 180 px de diametro e o campo receptivo teorico do meu encoder e 140 px")
 **nao se aplica ao nosso caso, e por uma margem enorme**. O campo receptivo teorico do
-ResNet34 e 899 px e o maior nucleo do dataset tem 88 px. Nem o maior objeto chega a um
+ResNet34 e 899 px e o maior nucleo do dataset tem 93 px. Nem o maior objeto chega a um
 decimo do campo receptivo. Se a nossa unica ferramenta de diagnostico fosse campo
 receptivo, a conclusao seria que nao ha nada errado, e claramente ha.
 
 A coluna que conta a historia certa e a outra: **output stride 32**. O feature map mais
-profundo tem uma celula a cada 32 px da imagem, e o nucleo mediano tem 20.7 px de
+profundo tem uma celula a cada 32 px da imagem, e o nucleo mediano tem 19.4 px de
 diametro. Ou seja, **um nucleo inteiro e menor do que uma unica celula do topo do
 encoder**, e dois nucleos encostados cabem folgados dentro da mesma celula. No fim do
 layer4 nao existe representacao nenhuma capaz de distinguir "um nucleo" de "dois nucleos
@@ -685,8 +694,8 @@ cortar entre dois (separar).
 Isso tambem responde a pergunta do enunciado sobre atrous. Como o campo receptivo ja e
 grande demais, o valor de atrous aqui **nao e o campo receptivo, e o output stride**:
 dilatar o layer4 leva o stride de 32 pra 16, e dilatar layer3 e layer4 leva pra 8, que ja
-e menor que o diametro de um nucleo. O ganho de campo receptivo que vem junto (435 para
-467 para 483 no ResNet18) e irrelevante nesse dataset. Essa e a leitura que a gente quer
+e menor que o diametro de um nucleo. O ganho de campo receptivo que vem junto (899 para
+931 para 947 no ResNet34) e irrelevante nesse dataset, porque 899 ja era grande demais. Essa e a leitura que a gente quer
 defender na apresentacao: o mesmo mecanismo do slide 40, mas o beneficio dele aqui e o
 efeito colateral, nao o efeito anunciado.
 
