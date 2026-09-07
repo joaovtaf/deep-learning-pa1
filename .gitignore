@@ -217,8 +217,13 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# dados e resultados do PA1
-data/
-runs/
-checkpoints/
+# dados e resultados do PA1. as barras na frente importam: sem elas "data/" tambem
+# casaria com src/pa1/data/, que e codigo, e foi assim que a gente perdeu o pacote
+# inteiro no primeiro commit
+/data/
+/runs/
+/checkpoints/
 *.pt
+
+# results/ vai versionado de proposito, e o lastro da apresentacao
+!/results/
