@@ -51,6 +51,12 @@ MAP = [
     ("runs/dsb2018_boundary_os16/eval_test/metrics.json", "parte5/os16_metrics.json"),
     ("runs/dsb2018_boundary_os16/part5_failures/results.json", "parte5/os16_results.json"),
 
+    ("runs/dsb2018_final/summary.json", "parte3/final_sem_alpha_summary.json"),
+    ("runs/dsb2018_final/tune_watershed.json", "parte3/final_sem_alpha_tune.json"),
+    ("runs/dsb2018_final/eval_test/metrics.json", "parte3/final_sem_alpha_metrics.json"),
+    ("runs/dsb2018_final_ctx/summary.json", "parte3/final_ctx_summary.json"),
+    ("runs/dsb2018_final_ctx/tune_watershed.json", "parte3/final_ctx_tune.json"),
+    ("runs/dsb2018_final_ctx/eval_test/metrics.json", "parte3/final_ctx_metrics.json"),
     ("runs/ablation_axis2/results.json", "parte3/eixo2_results.json"),
     ("runs/ablation_axis2/map.png", "parte3/eixo2_map.png"),
     ("runs/ablation_axis2/dice.png", "parte3/eixo2_dice.png"),
