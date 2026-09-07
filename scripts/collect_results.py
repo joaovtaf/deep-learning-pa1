@@ -36,13 +36,20 @@ MAP = [
     ("runs/dsb2018_baseline/eval_test/density.png", "parte1/density.png"),
     ("runs/dsb2018_baseline/eval_test/panels", "parte1/panels"),
     ("runs/dsb2018_baseline/eval_test_hungarian/metrics.json", "parte1/metrics_hungarian.json"),
+    ("runs/dsb2018_baseline/eval_test_calibrado/metrics.json", "parte1/metrics_calibrado.json"),
+    ("runs/dsb2018_baseline/tune_postprocess.json", "parte1/tune_postprocess.json"),
+    ("runs/dsb2018_baseline/part5_failures/results.json", "parte5/baseline_results.json"),
 
     ("runs/dsb2018_boundary/history.json", "parte2/history.json"),
     ("runs/dsb2018_boundary/summary.json", "parte2/summary.json"),
     ("runs/dsb2018_boundary/eval_test/metrics.json", "parte2/metrics.json"),
     ("runs/dsb2018_boundary/eval_test/density.png", "parte2/density.png"),
     ("runs/dsb2018_boundary/eval_test/panels", "parte2/panels"),
+    ("runs/dsb2018_boundary/eval_test_calibrado/metrics.json", "parte2/metrics_calibrado.json"),
+    ("runs/dsb2018_boundary/tune_watershed.json", "parte2/tune_watershed.json"),
     ("runs/comparison", "parte2/comparacao"),
+    ("runs/dsb2018_boundary_os16/eval_test/metrics.json", "parte5/os16_metrics.json"),
+    ("runs/dsb2018_boundary_os16/part5_failures/results.json", "parte5/os16_results.json"),
 
     ("runs/ablation_axis2/results.json", "parte3/eixo2_results.json"),
     ("runs/ablation_axis2/map.png", "parte3/eixo2_map.png"),
@@ -53,7 +60,9 @@ MAP = [
     ("runs/ablation_axis3/dice.png", "parte3/eixo3_dice.png"),
     ("runs/ablation_axis3/count_error.png", "parte3/eixo3_count_error.png"),
 
-    ("runs/dsb2018_boundary/part4_mosaic", "parte4"),
+    ("runs/dsb2018_boundary/part4_tile256", "parte4/tile256"),
+    ("runs/dsb2018_boundary/part4_tile128", "parte4/tile128"),
+    ("runs/dsb2018_boundary/part4_tile96", "parte4/tile96"),
     ("runs/dsb2018_boundary/part5_failures", "parte5"),
     ("runs/dsb2018_boundary/part6_stress", "parte6"),
 ]

@@ -1,0 +1,97 @@
+{
+  "split": "val",
+  "task": "binary",
+  "best": {
+    "threshold": 0.8,
+    "min_size": 20,
+    "mAP": 0.5093265482084103,
+    "AP50": 0.7092926873567837,
+    "mean_count_error": 8.3
+  },
+  "grid": [
+    {
+      "threshold": 0.8,
+      "min_size": 10,
+      "mAP": 0.5062658193223054,
+      "AP50": 0.7067771790634535,
+      "mean_count_error": 7.94
+    },
+    {
+      "threshold": 0.8,
+      "min_size": 20,
+      "mAP": 0.5093265482084103,
+      "AP50": 0.7092926873567837,
+      "mean_count_error": 8.3
+    },
+    {
+      "threshold": 0.8,
+      "min_size": 40,
+      "mAP": 0.5085261538407194,
+      "AP50": 0.7018392378010186,
+      "mean_count_error": 9.17
+    },
+    {
+      "threshold": 0.85,
+      "min_size": 10,
+      "mAP": 0.49935177595257474,
+      "AP50": 0.707493879377997,
+      "mean_count_error": 7.45
+    },
+    {
+      "threshold": 0.85,
+      "min_size": 20,
+      "mAP": 0.5032541141448147,
+      "AP50": 0.711463842899766,
+      "mean_count_error": 7.82
+    },
+    {
+      "threshold": 0.85,
+      "min_size": 40,
+      "mAP": 0.503284754789266,
+      "AP50": 0.7050822951541045,
+      "mean_count_error": 8.76
+    },
+    {
+      "threshold": 0.9,
+      "min_size": 10,
+      "mAP": 0.481539079611291,
+      "AP50": 0.7098130041951677,
+      "mean_count_error": 6.92
+    },
+    {
+      "threshold": 0.9,
+      "min_size": 20,
+      "mAP": 0.48637949889206217,
+      "AP50": 0.7155110812023925,
+      "mean_count_error": 7.37
+    },
+    {
+      "threshold": 0.9,
+      "min_size": 40,
+      "mAP": 0.48636819776274676,
+      "AP50": 0.7073768677437856,
+      "mean_count_error": 8.37
+    },
+    {
+      "threshold": 0.95,
+      "min_size": 10,
+      "mAP": 0.4242278633583198,
+      "AP50": 0.7022197809484932,
+      "mean_count_error": 6.1
+    },
+    {
+      "threshold": 0.95,
+      "min_size": 20,
+      "mAP": 0.4282279507591204,
+      "AP50": 0.7078429647602015,
+      "mean_count_error": 6.69
+    },
+    {
+      "threshold": 0.95,
+      "min_size": 40,
+      "mAP": 0.4271065357777985,
+      "AP50": 0.7000479876454722,
+      "mean_count_error": 7.98
+    }
+  ]
+}

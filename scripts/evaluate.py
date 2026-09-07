@@ -61,8 +61,11 @@ def main():
     args = ap.parse_args()
 
     cfg = load_config(args.config)
-    for key, value in [("interior_threshold", args.interior_threshold),
-                       ("fg_threshold", args.fg_threshold), ("min_size", args.min_size)]:
+    # fg_threshold e threshold sao a mesma ideia nas duas tarefas (ate onde o objeto
+    # cresce), so mudam de nome, entao um flag so escreve os dois
+    overrides = [("interior_threshold", args.interior_threshold), ("min_size", args.min_size),
+                 ("fg_threshold", args.fg_threshold), ("threshold", args.fg_threshold)]
+    for key, value in overrides:
         if value is not None:
             cfg.setdefault("postprocess", {})[key] = value
     seed_everything(int(cfg.get("seed", 0)))

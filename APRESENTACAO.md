@@ -446,18 +446,58 @@ Por limiar de IoU, o perfil dos dois:
 | Parte 1 | 0.693 | 0.663 | 0.633 | 0.601 | 0.572 | 0.509 | 0.423 | 0.314 | 0.188 | 0.058 |
 | Parte 2 | **0.759** | **0.727** | **0.697** | **0.659** | **0.614** | **0.552** | **0.461** | **0.328** | 0.157 | 0.018 |
 
-A leitura honesta dessa tabela: o ganho esta todo nos limiares de 0.50 a 0.85. Em
-0.90 e 0.95 a Parte 2 fica **pior** que a Parte 1 (0.157 contra 0.188 e 0.018 contra
-0.058). Faz sentido e a gente vai defender assim: o watershed decide a fronteira exata
-entre dois nucleos por um criterio geometrico (a linha de divisa entre duas bacias), e
-essa linha raramente coincide pixel a pixel com a anotacao humana. Entao a Parte 2 acerta
-muito mais objetos, mas com contorno ligeiramente pior em cada um. Componentes conexos,
-quando por acaso acerta um nucleo isolado, acerta o contorno inteiro, porque o contorno e
-literalmente o limiar da probabilidade.
+### A calibracao da decodificacao, e por que ela quase nos fez errar a analise
 
-Ou seja, as duas mudancas nao competem pelo mesmo recurso: a Parte 2 resolve separacao e
-paga um pouco em delineamento. Como o problema do dataset e separacao, o saldo e
-fortemente positivo.
+Os limiares dos dois pos-processamentos estavam no chute (0.5 pra tudo). Calibramos os dois
+**no split de validacao** com `scripts/tune_watershed.py`, que roda a rede uma vez e varre os
+limiares em numpy, e so depois medimos no teste. Os melhores foram limiar 0.8 e min_size 20
+pro baseline, e interior 0.5, foreground 0.7 e min_size 20 pra trilha A.
+
+| decodificacao | Parte 1 | Parte 2 |
+|---|---|---|
+| padrao (limiar 0.5) | 0.4654 | 0.4972 |
+| calibrada na validacao | **0.5351** | **0.5787** |
+
+Os dois ganham muito, cerca de 0.07 e 0.08 de mAP, **sem tocar em um peso sequer da rede**.
+Os dois modelos preferem um limiar de foreground bem mais alto que 0.5, o que quer dizer que
+eles estao sistematicamente prevendo foreground demais, e cortar mais fundo melhora o IoU de
+cada instancia.
+
+Aqui a gente quase errou feio. Depois de calibrar so a Parte 2, ela passava a ganhar nos dez
+limiares de IoU, e a leitura obvia era "o deficit da Parte 2 em IoU alto era artefato de
+hiperparametro". So que essa comparacao era injusta: um lado calibrado contra o outro no
+chute. Calibrando os dois, o padrao volta a aparecer, e ele e real. Fica de licao: calibrar
+so o metodo que a gente esta defendendo e uma forma facil de se enganar.
+
+### O resultado final, com os dois lados calibrados
+
+Split de teste, 101 imagens, matching guloso, os dois com a decodificacao escolhida na
+validacao:
+
+| metrica | Parte 1 (limiar + CC) | Parte 2 (fronteira + watershed) | delta |
+|---|---|---|---|
+| IoU semantico | **0.8415** | 0.8052 | -0.0363 |
+| Dice | **0.9120** | 0.8881 | -0.0239 |
+| mAP @[.50:.95] | 0.5351 | **0.5787** | **+0.0436** |
+| AP @.50 | 0.7312 | **0.8137** | **+0.0825** |
+| erro de contagem | 8.57 | **4.07** | **-4.50** |
+
+| limiar | 0.50 | 0.55 | 0.60 | 0.65 | 0.70 | 0.75 | 0.80 | 0.85 | 0.90 | 0.95 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Parte 1 | 0.731 | 0.701 | 0.677 | 0.650 | 0.618 | 0.579 | 0.524 | 0.442 | **0.314** | **0.114** |
+| Parte 2 | **0.814** | **0.790** | **0.769** | **0.737** | **0.695** | **0.639** | **0.546** | **0.444** | 0.279 | 0.075 |
+
+O padrao e claro e sobrevive a calibracao: **a Parte 2 ganha de 0.50 a 0.85 e perde em 0.90 e
+0.95**. E a explicacao original continua de pe. O watershed decide a divisa entre dois nucleos
+por um criterio geometrico, a linha entre duas bacias do mapa de distancia, e essa linha
+raramente coincide pixel a pixel com o tracado do anotador humano. Entao a Parte 2 acerta
+muito mais objetos, cada um com contorno um pouco pior. Componentes conexos, quando por acaso
+acerta um nucleo isolado, acerta o contorno inteiro, porque ali o contorno e literalmente o
+limiar da probabilidade.
+
+Como o mAP media dez limiares e sete deles estao na faixa onde a Parte 2 ganha, o saldo e
+fortemente positivo. E o erro de contagem, que e o que um biologo realmente usaria, cai pela
+metade, de 8.57 pra 4.07 nucleos por imagem.
 
 No sintetico, onde praticamente todo objeto encosta em outro, o mesmo efeito aparece muito
 mais forte: mAP de 0.1032 para 0.5122 e erro de contagem de 9.70 para 2.22.

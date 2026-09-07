@@ -1,0 +1,423 @@
+{
+  "encoder": "resnet34",
+  "receptive_field": {
+    "name": "resnet34",
+    "rf": 899,
+    "output_stride": 32
+  },
+  "receptive_field_rows": [
+    {
+      "layer": "conv1",
+      "kernel": 7,
+      "stride": 2,
+      "dilation": 1,
+      "jump": 2,
+      "rf": 7
+    },
+    {
+      "layer": "maxpool",
+      "kernel": 3,
+      "stride": 2,
+      "dilation": 1,
+      "jump": 4,
+      "rf": 11
+    },
+    {
+      "layer": "layer1.0.conv1",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 4,
+      "rf": 19
+    },
+    {
+      "layer": "layer1.0.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 4,
+      "rf": 27
+    },
+    {
+      "layer": "layer1.1.conv1",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 4,
+      "rf": 35
+    },
+    {
+      "layer": "layer1.1.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 4,
+      "rf": 43
+    },
+    {
+      "layer": "layer1.2.conv1",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 4,
+      "rf": 51
+    },
+    {
+      "layer": "layer1.2.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 4,
+      "rf": 59
+    },
+    {
+      "layer": "layer2.0.conv1",
+      "kernel": 3,
+      "stride": 2,
+      "dilation": 1,
+      "jump": 8,
+      "rf": 67
+    },
+    {
+      "layer": "layer2.0.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 8,
+      "rf": 83
+    },
+    {
+      "layer": "layer2.1.conv1",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 8,
+      "rf": 99
+    },
+    {
+      "layer": "layer2.1.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 8,
+      "rf": 115
+    },
+    {
+      "layer": "layer2.2.conv1",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 8,
+      "rf": 131
+    },
+    {
+      "layer": "layer2.2.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 8,
+      "rf": 147
+    },
+    {
+      "layer": "layer2.3.conv1",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 8,
+      "rf": 163
+    },
+    {
+      "layer": "layer2.3.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 8,
+      "rf": 179
+    },
+    {
+      "layer": "layer3.0.conv1",
+      "kernel": 3,
+      "stride": 2,
+      "dilation": 1,
+      "jump": 16,
+      "rf": 195
+    },
+    {
+      "layer": "layer3.0.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 16,
+      "rf": 227
+    },
+    {
+      "layer": "layer3.1.conv1",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 16,
+      "rf": 259
+    },
+    {
+      "layer": "layer3.1.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 16,
+      "rf": 291
+    },
+    {
+      "layer": "layer3.2.conv1",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 16,
+      "rf": 323
+    },
+    {
+      "layer": "layer3.2.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 16,
+      "rf": 355
+    },
+    {
+      "layer": "layer3.3.conv1",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 16,
+      "rf": 387
+    },
+    {
+      "layer": "layer3.3.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 16,
+      "rf": 419
+    },
+    {
+      "layer": "layer3.4.conv1",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 16,
+      "rf": 451
+    },
+    {
+      "layer": "layer3.4.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 16,
+      "rf": 483
+    },
+    {
+      "layer": "layer3.5.conv1",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 16,
+      "rf": 515
+    },
+    {
+      "layer": "layer3.5.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 16,
+      "rf": 547
+    },
+    {
+      "layer": "layer4.0.conv1",
+      "kernel": 3,
+      "stride": 2,
+      "dilation": 1,
+      "jump": 32,
+      "rf": 579
+    },
+    {
+      "layer": "layer4.0.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 32,
+      "rf": 643
+    },
+    {
+      "layer": "layer4.1.conv1",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 32,
+      "rf": 707
+    },
+    {
+      "layer": "layer4.1.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 32,
+      "rf": 771
+    },
+    {
+      "layer": "layer4.2.conv1",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 32,
+      "rf": 835
+    },
+    {
+      "layer": "layer4.2.conv2",
+      "kernel": 3,
+      "stride": 1,
+      "dilation": 1,
+      "jump": 32,
+      "rf": 899
+    }
+  ],
+  "receptive_field_atrous": {
+    "name": "resnet34_atrous",
+    "rf": 931,
+    "output_stride": 16
+  },
+  "object_sizes": {
+    "n": 4371,
+    "mean": 21.055282918548272,
+    "median": 19.38054864282415,
+    "p95": 47.83314611941739,
+    "p99": 60.62662026282162,
+    "max": 93.35590331474593
+  },
+  "gallery": [
+    {
+      "idx": 69,
+      "image_id": "ad473063dab4bf4f2461d9a99a9c0166d4871f156516d9e0a523484e7cf2258d",
+      "ap": 0.07663337257034523,
+      "n_gt": 84,
+      "n_pred": 36,
+      "breakdown": {
+        "merged": 14,
+        "fragmented": 0,
+        "missed": 67,
+        "spurious": 19,
+        "n_pred": 36,
+        "n_gt": 84
+      },
+      "sizes": {
+        "n": 84,
+        "mean": 12.368239645232544,
+        "median": 12.488842805293821,
+        "p95": 19.065557878547533,
+        "p99": 20.23298048235768,
+        "max": 20.466944330257718
+      },
+      "figure": "runs/dsb2018_baseline/part5_failures/failure_1.png"
+    },
+    {
+      "idx": 64,
+      "image_id": "a7f767ca9770b160f234780e172aeb35a50830ba10dc49c526f4712451abe1d2",
+      "ap": 0.08,
+      "n_gt": 11,
+      "n_pred": 6,
+      "breakdown": {
+        "merged": 3,
+        "fragmented": 0,
+        "missed": 9,
+        "spurious": 4,
+        "n_pred": 6,
+        "n_gt": 11
+      },
+      "sizes": {
+        "n": 11,
+        "mean": 50.37871225722041,
+        "median": 57.93323260376456,
+        "p95": 78.52107955484783,
+        "p99": 78.77728062748798,
+        "max": 78.84133089564803
+      },
+      "figure": "runs/dsb2018_baseline/part5_failures/failure_2.png"
+    },
+    {
+      "idx": 31,
+      "image_id": "3bfa8b3b01fd24a28477f103063d17368a7398b27331e020f3a0ef59bf68c940",
+      "ap": 0.10037871289056408,
+      "n_gt": 82,
+      "n_pred": 39,
+      "breakdown": {
+        "merged": 14,
+        "fragmented": 1,
+        "missed": 61,
+        "spurious": 18,
+        "n_pred": 39,
+        "n_gt": 82
+      },
+      "sizes": {
+        "n": 82,
+        "mean": 16.672175627019342,
+        "median": 16.99971518134909,
+        "p95": 26.851514396853343,
+        "p99": 30.70449539030737,
+        "max": 31.453253031430968
+      },
+      "figure": "runs/dsb2018_baseline/part5_failures/failure_3.png"
+    },
+    {
+      "idx": 90,
+      "image_id": "e216ec5063d3562b793e434c491051bd8867f6c2e571e41137c7c560cc0e6a03",
+      "ap": 0.11334856953391434,
+      "n_gt": 21,
+      "n_pred": 12,
+      "breakdown": {
+        "merged": 7,
+        "fragmented": 0,
+        "missed": 14,
+        "spurious": 5,
+        "n_pred": 12,
+        "n_gt": 21
+      },
+      "sizes": {
+        "n": 21,
+        "mean": 9.688632955739212,
+        "median": 10.280023453913834,
+        "p95": 11.994835078277376,
+        "p99": 12.691368587784574,
+        "max": 12.865501965161373
+      },
+      "figure": "runs/dsb2018_baseline/part5_failures/failure_4.png"
+    },
+    {
+      "idx": 53,
+      "image_id": "87ea72894f6534b28e740cc34cf5c9eb75d0d8902687fce5fcc08a92e9f41386",
+      "ap": 0.1383821757290235,
+      "n_gt": 14,
+      "n_pred": 21,
+      "breakdown": {
+        "merged": 2,
+        "fragmented": 0,
+        "missed": 7,
+        "spurious": 14,
+        "n_pred": 21,
+        "n_gt": 14
+      },
+      "sizes": {
+        "n": 14,
+        "mean": 32.86437247517144,
+        "median": 34.169505535798436,
+        "p95": 54.11784215850445,
+        "p99": 55.53245150957062,
+        "max": 55.88610384733717
+      },
+      "figure": "runs/dsb2018_baseline/part5_failures/failure_5.png"
+    }
+  ],
+  "dataset_breakdown": {
+    "merged_total": 582,
+    "fragmented_total": 4,
+    "missed_total": 1505,
+    "spurious_total": 510
+  }
+}
