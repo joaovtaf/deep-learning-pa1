@@ -920,7 +920,7 @@ casca de 2 px entre nucleos simplesmente nao foi prevista.
 ### O diagnostico, com o numero do erro no split inteiro
 
 Somando os quatro modos de erro nas 101 imagens de teste, nos dois modelos
-(`results/parte5/results.json` e `results/parte1/../part5_failures/results.json`):
+(`results/parte5/results.json` pra trilha A e `results/parte5/baseline_results.json` pro baseline):
 
 | modo de erro | Parte 1 (limiar + CC) | Parte 2 (fronteira + watershed) |
 |---|---|---|
