@@ -665,16 +665,46 @@ Resumindo pra apresentacao: contexto global melhora o mAP, mas por classificar m
 por separar melhor. Quem separa melhor e o contexto **multi-escala**, e mesmo assim
 modestamente.
 
-### O que a Parte 3 mudou no modelo final
+### O que a Parte 3 mudou no modelo final, e por que quase nada mudou
 
-As ablacoes nao ficaram como apendice. Duas conclusoes delas voltaram pro modelo final:
+As ablacoes nao ficaram como apendice: a gente levou as conclusoes delas de volta pro modelo
+final e mediu. Duas mudancas, testadas em `configs/dsb2018_final.yaml` (sem alpha) e
+`configs/dsb2018_final_ctx.yaml` (sem alpha mais image pooling), as duas treinadas com as 40
+epocas do modelo final e as duas com a decodificacao calibrada na propria validacao.
 
-1. **o alpha saiu**, porque o eixo 2 mostrou que ele custa 0.10 de mAP
-2. **a decodificacao foi calibrada na validacao** com `scripts/tune_watershed.py`, e so
-   trocar `fg_threshold` de 0.5 pra 0.7 vale +0.08 de mAP de validacao
+O criterio de escolha e o mAP de validacao, cada modelo no seu proprio otimo de decodificacao:
 
-Os configs `dsb2018_final.yaml` e `dsb2018_final_ctx.yaml` sao esses, com e sem o image
-pooling, e a escolha entre os dois foi feita pelo mAP de validacao.
+| modelo | perda | contexto | mAP de validacao |
+|---|---|---|---|
+| `dsb2018_boundary` (o original) | focal gamma=2 **com** alpha | nenhum | **0.5612** |
+| `dsb2018_final` | focal gamma=2 **sem** alpha | nenhum | 0.5344 |
+| `dsb2018_final_ctx` | focal gamma=2 **sem** alpha | image pooling | 0.5539 |
+
+**Tirar o alpha nao ajudou no orcamento cheio, apesar de ter ajudado no orcamento das
+ablacoes.** No regime de 20 epocas a diferenca entre com e sem alpha era de 0.10 de mAP a
+favor de tirar. Com 40 epocas e o schedule completo, a diferenca inverte e fica em 0.027 a
+favor de manter.
+
+Esse e um resultado negativo e a gente vai apresentar ele como tal, porque ele e mais
+informativo que o positivo teria sido. A leitura: **a conclusao da ablacao nao transferiu
+para o regime do modelo final**. E consistente com a armadilha do scheduler que a gente ja
+tinha detectado. O alpha empurra a rede a marcar fronteira demais, o que atrapalha cedo no
+treino, mas com learning rate alto por mais tempo a rede tem folga pra desfazer esse vies e
+acaba aproveitando o sinal extra na classe minoritaria. Ou seja, o alpha nao e ruim, ele e
+**lento**, e o orcamento de 20 epocas nao dava tempo de ele pagar.
+
+O que isso custa: nao da pra usar uma ablacao barata como substituta de um experimento no
+regime real, mesmo que ela seja limpa, com 2 seeds e desvio pequeno. O ranking que ela
+produz vale dentro do orcamento dela, e so.
+
+O image pooling ficou no meio (0.5539) e tambem nao superou o original, mas ele reproduz de
+novo o achado do eixo 3 de forma bem nitida: e o modelo com **melhor Dice de todos** (0.9139
+no teste, contra 0.8881 do original) e ao mesmo tempo com um dos piores mAP. Contexto global
+melhora classificacao e nao melhora separacao, medido duas vezes em regimes diferentes.
+
+**O modelo final entregue continua sendo o `dsb2018_boundary`**, com a decodificacao
+calibrada. As mudancas testadas ficaram no repo com o numero delas, que e o que da lastro
+pra afirmar que foram testadas e nao apenas cogitadas.
 
 ## Parte 4, inferencia em mosaico
 
@@ -1052,10 +1082,18 @@ calibrou o watershed pela validacao, o que esta certo, mas rodou a avaliacao de 
 varias vezes ao longo do desenvolvimento. Nao houve escolha de modelo feita pelo numero
 de teste, mas registrar isso e mais honesto do que fingir que o teste foi aberto uma vez.
 
-Com mais tempo, na ordem em que a gente atacaria: rodar o modelo final com 3 seeds pra ter
-barra de erro na comparacao principal, tentar a trilha B pra ver se embedding separa melhor
-que fronteira nos aglomerados densos do cluster 3, e treinar com output stride 8 pra levar
-o diagnostico da Parte 5 ate o fim.
+**As ablacoes rodaram num regime que nao e o do modelo final**, e a gente so descobriu o
+tamanho disso no fim, quando levou a conclusao do eixo 2 de volta pro orcamento cheio e ela
+nao se sustentou. O certo teria sido rodar as ablacoes com 40 epocas, o que custaria umas 2
+horas de GPU em vez de 53 minutos, ou pelo menos fixar o schedule em vez de deixar o T_max
+seguir o numero de epocas. Ficou como esta, documentado, porque o resultado negativo tambem
+ensina.
+
+Com mais tempo, na ordem em que a gente atacaria: refazer o eixo 2 com 40 epocas pra ver se
+o ranking muda mesmo ou se foi so o schedule, rodar o modelo final com 3 seeds pra ter barra
+de erro na comparacao principal, tentar a trilha B pra ver se embedding separa melhor que
+fronteira nos aglomerados densos do cluster 3, e treinar com output stride 8 pra levar o
+diagnostico da Parte 5 ate o fim.
 
 ## Mapa dos entregaveis
 
@@ -1066,6 +1104,7 @@ o diagnostico da Parte 5 ate o fim.
 | AI_LOG | `AI_LOG.md` |
 | notebook de inferencia que roda sem retreinar | `inferencia.ipynb`, logica em `src/pa1/inference.py` |
 | checkpoint do modelo final | `runs/dsb2018_boundary/best.pt`, link no README |
+| Parte 3 aplicada de volta no modelo final | `configs/dsb2018_final*.yaml`, resultado negativo documentado |
 | Parte 0, gerador sintetico e teste em menos de 5 min | `src/pa1/data/synthetic.py`, `configs/synthetic_*.yaml` |
 | Parte 1, baseline binario, IoU e Dice | `configs/dsb2018_baseline.yaml`, `results/parte1/` |
 | Parte 1, instancias por limiar e componentes conexos | `src/pa1/postprocess/naive.py` |
