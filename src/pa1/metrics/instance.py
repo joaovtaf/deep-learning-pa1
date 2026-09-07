@@ -167,3 +167,52 @@ class InstanceMeter:
     def density_table(self) -> np.ndarray:
         """(n_imagens, 3) com [densidade, ap, erro de contagem], pro grafico da Parte 1."""
         return np.array([[r.n_gt, r.ap, r.count_error] for r in self.results], dtype=np.float64)
+
+
+def instance_areas(labels: np.ndarray) -> np.ndarray:
+    """Area de cada instancia presente, na mesma ordem que instance_iou_matrix usa.
+
+    bincount()[1:] daria errado quando a numeracao tem buraco: sairia com tamanho
+    max(label) em vez do numero de instancias, e nao alinharia com a matriz de IoU,
+    que renumera pra 1..n. Foi o bug que derrubou o primeiro run da Parte 5.
+    """
+    counts = np.bincount(np.asarray(labels).ravel())
+    present = np.nonzero(counts)[0]
+    return counts[present[present > 0]]
+
+
+def error_breakdown(pred_labels, gt_labels, overlap: float = 0.5) -> dict:
+    """Separa o erro em fusao, fragmentacao, faltou e sobrou (diagnostico da Parte 5).
+
+    Fusao: uma instancia prevista que cobre boa parte de duas ou mais verdadeiras. E o
+    modo de falha classico da Parte 1, e o que a trilha A deveria ter matado.
+
+    Fragmentacao: uma instancia verdadeira coberta por duas ou mais previsoes. E o modo
+    de falha novo que a trilha A introduz, quando o interior previsto racha em dois
+    marcadores e o watershed corta um nucleo no meio.
+
+    Saber qual dos dois domina e o que diz se o proximo ajuste deve ser no
+    interior_threshold (que troca um pelo outro) ou em outro lugar.
+    """
+    iou = instance_iou_matrix(pred_labels, gt_labels)
+    n_pred, n_gt = iou.shape
+    if n_pred == 0 or n_gt == 0:
+        return {"merged": 0, "fragmented": 0, "missed": n_gt, "spurious": n_pred,
+                "n_pred": n_pred, "n_gt": n_gt}
+
+    gt_area = instance_areas(gt_labels)
+    pred_area = instance_areas(pred_labels)
+    # de iou = i / (a + b - i) sai i = iou * (a + b) / (1 + iou)
+    inter = iou * (pred_area[:, None] + gt_area[None, :]) / (1 + iou)
+
+    cover_gt = inter / np.maximum(gt_area[None, :], 1)      # quanto de cada gt cada pred cobre
+    cover_pred = inter / np.maximum(pred_area[:, None], 1)  # quanto de cada pred cai em cada gt
+
+    return {
+        "merged": int(((cover_gt >= overlap).sum(axis=1) >= 2).sum()),
+        "fragmented": int(((cover_pred >= overlap).sum(axis=0) >= 2).sum()),
+        "missed": int((iou.max(axis=0) < 0.5).sum()),
+        "spurious": int((iou.max(axis=1) < 0.5).sum()),
+        "n_pred": n_pred,
+        "n_gt": n_gt,
+    }
