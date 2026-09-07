@@ -128,16 +128,48 @@ Antes de treinar qualquer rede, da pra responder a pergunta "o problema esta na 
 na representacao?" alimentando o pos-processamento com a saida perfeita. Se a rede
 acertasse tudo, quanto cada decodificacao entregaria?
 
-Rodando em 24 imagens sinteticas (esta em `tests/test_targets_and_postprocess.py`, no
-teste `test_watershed_beats_connected_components_with_perfect_input`):
+Isso e `scripts/oracle_ceiling.py`, que nao treina nada e nao carrega checkpoint. Rodamos
+nos dois datasets, no split de teste inteiro. Saida em
+`results/oracle_ceiling_synthetic_test.json` e `results/oracle_ceiling_dsb2018_test.json`.
 
-| decodificacao | entrada perfeita | mAP@[.50:.95] |
+| decodificacao | entrada perfeita | sintetico (128 img) | DSB2018 (101 img) |
+|---|---|---|---|
+| limiar + componentes conexos (Parte 1) | mascara semantica | **0.115** | **0.766** |
+| watershed com marcadores (Parte 2) | fronteira e distancia | **0.791** | **0.960** |
+| watershed so do mapa de distancia | so a distancia | 0.790 | 0.970 |
+
+E so no terco mais denso de cada split, que e onde o problema aparece:
+
+| decodificacao | sintetico (>= 16 obj) | DSB2018 (>= 45 obj) |
 |---|---|---|
-| limiar + componentes conexos (Parte 1) | mascara semantica perfeita | **0.102** |
-| watershed com marcadores (Parte 2) | fronteira e distancia perfeitas | **0.831** |
-| watershed so do mapa de distancia | distancia perfeita | 0.806 |
+| componentes conexos | 0.077 | 0.660 |
+| watershed | 0.739 | 0.954 |
 
-E em 24 de 24 imagens o componentes conexos funde pelo menos duas elipses.
+Tres leituras, e a terceira e a que mais vale falar na apresentacao.
+
+Primeira, **o teto do componentes conexos e um teto de verdade**. Com a mascara semantica
+perfeita, ou seja, com uma rede que nao erra um pixel sequer, o metodo da Parte 1 nao passa
+de 0.115 no sintetico e 0.766 no DSB2018. Nenhum treino, nenhum encoder, nenhuma perda
+melhora isso, porque a informacao que separa dois nucleos encostados nao existe numa
+mascara binaria: eles formam um blob unico e conexo.
+
+Segunda, **trocar o que a rede preve muda o teto, com a mesma arquitetura**. De 0.115 para
+0.791 no sintetico e de 0.766 para 0.960 no DSB2018. E no terco mais denso, que e o caso
+que interessa, de 0.077 para 0.739 e de 0.660 para 0.954.
+
+Terceira, e essa a gente so percebeu depois de rodar: **o dataset sintetico e muito mais
+duro que o real**, de proposito. No sintetico quase toda elipse encosta em outra, entao
+componentes conexos e catastrofico (0.115). No DSB2018 boa parte dos nucleos esta isolada,
+e componentes conexos ja entrega 0.766. Ou seja, o sintetico nao e uma versao facil do
+problema real, e uma versao concentrada exatamente no modo de falha que a gente quer
+atacar. Isso vai importar de novo na Parte 2, quando o ganho no real for menor que no
+sintetico: nao e o metodo funcionando pior, e o problema aparecendo em menor proporcao.
+
+O mesmo experimento em 24 imagens sinteticas esta como teste em
+`tests/test_targets_and_postprocess.py`
+(`test_watershed_beats_connected_components_with_perfect_input`), entao ele roda no `pytest`
+e trava se alguem quebrar a geracao de alvo. Nessas 24, em 24 de 24 o componentes conexos
+funde pelo menos duas elipses.
 
 Isso e o slide mais importante da apresentacao. Com a **mascara semantica perfeita**, ou
 seja, com uma rede que nao erra um pixel sequer, o metodo da Parte 1 entrega 0.102 de

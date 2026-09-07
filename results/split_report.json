@@ -1,0 +1,112 @@
+{
+  "clusters": [
+    {
+      "cluster": 0,
+      "n": 449,
+      "features": {
+        "gray_mean": 0.04072752967476845,
+        "gray_std": 0.0395154133439064,
+        "sat_mean": 0.0,
+        "gray_median": 0.026960784569382668,
+        "frac_escuro": 0.9917305707931519,
+        "frac_claro": 8.163452002918348e-05,
+        "R-G": 0.0,
+        "B-G": 0.0
+      },
+      "instancias_por_imagem": 24.1,
+      "diametro_mediano": 22.820056393372074,
+      "leitura": "fluorescencia (fundo preto, cinza)"
+    },
+    {
+      "cluster": 1,
+      "n": 70,
+      "features": {
+        "gray_mean": 0.6471389532089233,
+        "gray_std": 0.08759755641222,
+        "sat_mean": 0.349673330783844,
+        "gray_median": 0.6780881881713867,
+        "frac_escuro": 0.0004409789980854839,
+        "frac_claro": 0.005407103803008795,
+        "R-G": 0.11968854814767838,
+        "B-G": 0.26561421155929565
+      },
+      "instancias_por_imagem": 36.75,
+      "diametro_mediano": 17.407785949022028,
+      "leitura": "histologia corada (roxo/rosa)"
+    },
+    {
+      "cluster": 2,
+      "n": 54,
+      "features": {
+        "gray_mean": 0.7711566090583801,
+        "gray_std": 0.12923607230186462,
+        "sat_mean": 0.11045440286397934,
+        "gray_median": 0.832581639289856,
+        "frac_escuro": 0.0007280969293788075,
+        "frac_claro": 0.719763994216919,
+        "R-G": 0.031424056738615036,
+        "B-G": 0.06754624098539352
+      },
+      "instancias_por_imagem": 63.5,
+      "diametro_mediano": 17.89467599844052,
+      "leitura": "brightfield (fundo claro)"
+    },
+    {
+      "cluster": 3,
+      "n": 97,
+      "features": {
+        "gray_mean": 0.10346565395593643,
+        "gray_std": 0.11294154822826385,
+        "sat_mean": 0.0,
+        "gray_median": 0.06421570479869843,
+        "frac_escuro": 0.9059766530990601,
+        "frac_claro": 0.006078856065869331,
+        "R-G": 0.0,
+        "B-G": 0.0
+      },
+      "instancias_por_imagem": 81.4,
+      "diametro_mediano": 18.26441241104166,
+      "leitura": "fluorescencia (fundo preto, cinza)"
+    }
+  ],
+  "distribuicao": [
+    {
+      "cluster": 0,
+      "train": 314,
+      "val": 67,
+      "test": 68,
+      "frac_train": 0.6695095948827292,
+      "frac_test": 0.6732673267326733
+    },
+    {
+      "cluster": 1,
+      "train": 49,
+      "val": 10,
+      "test": 11,
+      "frac_train": 0.1044776119402985,
+      "frac_test": 0.10891089108910891
+    },
+    {
+      "cluster": 2,
+      "train": 38,
+      "val": 8,
+      "test": 8,
+      "frac_train": 0.08102345415778252,
+      "frac_test": 0.07920792079207921
+    },
+    {
+      "cluster": 3,
+      "train": 68,
+      "val": 15,
+      "test": 14,
+      "frac_train": 0.14498933901918976,
+      "frac_test": 0.13861386138613863
+    }
+  ],
+  "max_gap": 0.00637547763305113,
+  "tamanhos": {
+    "train": 469,
+    "val": 100,
+    "test": 101
+  }
+}

@@ -19,6 +19,8 @@ from pathlib import Path
 MAP = [
     ("runs/class_stats.json", "class_stats.json"),
     ("runs/split_report.json", "split_report.json"),
+    ("runs/oracle_ceiling_synthetic_test.json", "oracle_ceiling_synthetic_test.json"),
+    ("runs/oracle_ceiling_dsb2018_test.json", "oracle_ceiling_dsb2018_test.json"),
 
     ("runs/synthetic_baseline/history.json", "parte0/synthetic_baseline_history.json"),
     ("runs/synthetic_baseline/summary.json", "parte0/synthetic_baseline_summary.json"),
