@@ -227,3 +227,6 @@ __marimo__/
 
 # results/ vai versionado de proposito, e o lastro da apresentacao
 !/results/
+
+# slides da aula, material do professor, nao e nosso pra versionar
+/slides/
