@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """Comando que avalia.
 
-Imprime IoU/Dice semanticos, mAP@[.50:.95], AP@.50 e erro medio de contagem,
-salva um JSON com a tabela por imagem, o grafico de densidade do item 5 da
-Parte 1 e alguns paineis qualitativos.
+Imprime IoU/Dice semanticos, mAP@[.50:.95], AP@.50 e erro medio de contagem, salva
+um JSON com a tabela por imagem, o grafico de densidade do item 5 da Parte 1 e
+alguns paineis qualitativos.
 
-    uv run python scripts/evaluate.py --config configs/dsb2018_baseline.yaml \
-        --checkpoint runs/dsb2018_baseline/best.pt
+    uv run python scripts/evaluate.py --config configs/dsb2018_boundary.yaml \
+        --checkpoint runs/dsb2018_boundary/best.pt
 """
 
 from __future__ import annotations
@@ -14,36 +14,34 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-import matplotlib
-
-matplotlib.use("Agg")
-
-import numpy as np
 import torch
 
 from pa1.engine.datasets import build_datasets, build_loaders
 from pa1.engine.evaluate import density_arrays, evaluate, format_report, save_metrics
-from pa1.models.unet import build_model
-from pa1.postprocess.naive import labels_from_probability
+from pa1.engine.train import build_from_config
 from pa1.utils import get_device, load_checkpoint, load_config, seed_everything
 from pa1.viz import density_plot, panel
 
 
 @torch.no_grad()
-def qualitative_panels(model, dataset, device, out_dir: Path, n=4, threshold=0.5, min_size=10):
+def qualitative_panels(model, dataset, task, device, out_dir: Path, n=4):
     out_dir.mkdir(parents=True, exist_ok=True)
     model.eval()
     for i in range(min(n, len(dataset))):
         item = dataset[i]
-        image = item["image"].unsqueeze(0).to(device)
-        prob = torch.sigmoid(model(image))[0, 0].cpu().numpy()
-        pred = labels_from_probability(prob, threshold=threshold, min_size=min_size)
+        logits = model(item["image"].unsqueeze(0).to(device))
+        pred = task.decode(logits)[0]
+        maps = {k: v[0] for k, v in task.maps(logits).items()}
         raw_image, gt_labels = dataset.raw(i)
-        if raw_image.dtype == np.uint8:
-            raw_image = raw_image / 255.0
-        # a predicao vem com padding, corta de volta pro tamanho original
         h, w = gt_labels.shape
-        panel(raw_image, gt_labels, pred[:h, :w], prob[:h, :w], title=f"amostra {i}", path=out_dir / f"sample_{i}.png")
+        panel(
+            raw_image,
+            gt_labels,
+            pred[:h, :w],
+            {k: v[:h, :w] for k, v in maps.items()},
+            title=f"{dataset.image_ids[i][:12]}",
+            path=out_dir / f"sample_{i}.png",
+        )
 
 
 def main():
@@ -63,16 +61,11 @@ def main():
 
     datasets = build_datasets(cfg["data"])
     loaders = build_loaders(datasets, cfg.get("loader", {}))
-
-    model = build_model(cfg["model"]).to(device)
+    model, task = build_from_config(cfg, device)
     load_checkpoint(args.checkpoint, model, map_location=device)
 
-    pp = cfg.get("postprocess", {})
-    threshold = float(pp.get("threshold", 0.5))
-    min_size = int(pp.get("min_size", 10))
     matching = args.matching or cfg.get("matching", "greedy")
-
-    metrics = evaluate(model, loaders[args.split], device, threshold=threshold, min_size=min_size, matching=matching)
+    metrics = evaluate(model, loaders[args.split], device, task, matching=matching)
     print(format_report(metrics, f"{cfg.get('name', args.config)}, split {args.split}"))
 
     out_dir = Path(args.out_dir or Path(args.checkpoint).parent / f"eval_{args.split}")
@@ -80,10 +73,9 @@ def main():
     save_metrics(metrics, out_dir / "metrics.json")
 
     d, ap_, ce = density_arrays(metrics)
-    density_plot(d, ap_, ce, path=out_dir / "density.png")
-    qualitative_panels(
-        model, datasets[args.split], device, out_dir / "panels", n=args.panels, threshold=threshold, min_size=min_size
-    )
+    density_plot(d, ap_, ce, path=out_dir / "density.png",
+                 title=f"{cfg.get('name','')}: mAP e erro de contagem contra densidade")
+    qualitative_panels(model, datasets[args.split], task, device, out_dir / "panels", n=args.panels)
     print(f"\nsalvou metrics.json, density.png e {args.panels} paineis em {out_dir}")
 
 
