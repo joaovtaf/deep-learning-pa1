@@ -29,6 +29,9 @@ MAP = [
     ("runs/synthetic_boundary/history.json", "parte0/synthetic_boundary_history.json"),
     ("runs/synthetic_boundary/summary.json", "parte0/synthetic_boundary_summary.json"),
     ("runs/synthetic_boundary/eval_test/metrics.json", "parte0/synthetic_boundary_metrics.json"),
+    ("runs/synthetic_boundary/eval_test/density.png", "parte0/synthetic_boundary_density.png"),
+    ("runs/synthetic_baseline/eval_test/panels", "parte0/panels_baseline"),
+    ("runs/synthetic_boundary/eval_test/panels", "parte0/panels_boundary"),
 
     ("runs/dsb2018_baseline/history.json", "parte1/history.json"),
     ("runs/dsb2018_baseline/summary.json", "parte1/summary.json"),

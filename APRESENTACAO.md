@@ -223,6 +223,16 @@ mesma arquitetura: trocando só o que a rede prevê, o mAP vai de **0.103 para 0
 erro de contagem cai de **9.70 para 2.22 núcleos por imagem**. Quase 5 vezes de ganho,
 com Dice praticamente igual (0.9920 contra 0.9857, ou seja, ligeiramente pior).
 
+Uma imagem do dataset sintético com as duas decodificações, pra ver o que os números
+acima querem dizer. O painel da Parte 1 mostra o blob único que componentes conexos
+produz num aglomerado, e o da Parte 2 mostra os mesmos objetos separados, junto com os
+mapas de interior, fronteira e distância que o watershed usa:
+
+![Parte 0, decodificação ingênua no sintético](results/parte0/panels_baseline/sample_1.png)
+
+![Parte 0, trilha A no sintético, com os mapas intermediários](results/parte0/panels_boundary/sample_1.png)
+
+
 ## Parte 1, o baseline e a quantificação do fracasso
 
 `configs/dsb2018_baseline.yaml`: U-Net com encoder ResNet34 pré-treinado na ImageNet,
@@ -274,6 +284,38 @@ num dataset onde a mediana é algo em torno de 25 núcleos por imagem. Com Dice 
 ou seja, com a máscara semântica essencialmente certa, o método erra a contagem em cerca
 de 40%. É o mesmo padrão do sintético, só que menos extremo porque nem todo núcleo do
 DSB2018 encosta em outro.
+
+### O item 5: quantificando o fracasso contra a densidade
+
+Este é o gráfico que o item 5 da Parte 1 pede, e a tendência fica visível sem esforço.
+Cada ponto é uma imagem do teste. À esquerda o AP por imagem, à direita o erro absoluto
+de contagem, os dois contra o número de objetos no ground truth. A reta é a regressão
+linear e a linha preta é a média por faixa de densidade:
+
+![Parte 1, AP e erro de contagem contra densidade de objetos](results/parte1/density.png)
+
+O painel da direita é o mais eloquente, e é onde o fracasso fica quantificado: **a
+inclinação da reta é +0.365 de erro de contagem por objeto a mais na imagem**. Ou seja, a
+cada 10 núcleos adicionais o método erra 3.7 núcleos a mais, e os pontos seguem a reta de
+perto, não é uma nuvem sem forma. Numa imagem com 20 núcleos o erro é de 3 a 5; numa com
+100 já está entre 25 e 50; e no caso extremo do teste, uma imagem com 343 núcleos, o erro
+é de **176 núcleos**, mais da metade.
+
+No painel da esquerda a inclinação é -0.0013 de AP por objeto, o que dá uma queda de 0.13
+de AP a cada 100 núcleos a mais. A média por faixa (linha preta) é ruidosa porque as
+faixas altas têm poucas imagens, mas a nuvem de pontos e a reta contam a mesma história: o
+método vai mal justamente onde tem mais objeto, que é onde ele precisaria ir bem.
+
+A causa é direta: quanto mais denso, mais núcleos encostam, e mais blobs fundidos o
+componentes conexos produz.
+
+E qualitativamente, duas imagens do teste com a predição da Parte 1 ao lado do ground
+truth. Repare nos aglomerados saindo como uma mancha só:
+
+![Parte 1, exemplo de predição](results/parte1/panels/sample_1.png)
+
+![Parte 1, exemplo em imagem densa](results/parte1/panels/sample_4.png)
+
 
 ### A regra de matching, na prática
 
@@ -344,6 +386,14 @@ O mapa de distância tem o mesmo cuidado: a EDT roda dentro do bounding box de c
 instância, e não globalmente. Uma EDT global não teria vale nenhum no contato entre dois
 núcleos encostados, e o vale é justamente o que o watershed usa pra decidir onde cortar.
 Também tem teste (`test_distance_does_not_leak_between_touching_instances`).
+
+Na prática, os quatro mapas que a rede passa a produzir. Da esquerda pra direita: a
+imagem, o ground truth, a predição decodificada, e depois foreground, interior, fronteira
+e distância. O canal de fronteira é a casca fina que aparece exatamente no contato entre
+núcleos vizinhos, e é ela que o componentes conexos da Parte 1 não tinha:
+
+![Parte 2, os mapas intermediários da trilha A](results/parte2/panels/sample_1.png)
+
 
 ### Que espessura
 
@@ -446,6 +496,23 @@ Por limiar de IoU, o perfil dos dois:
 |---|---|---|---|---|---|---|---|---|---|---|
 | Parte 1 | 0.693 | 0.663 | 0.633 | 0.601 | 0.572 | 0.509 | 0.423 | 0.314 | 0.188 | 0.058 |
 | Parte 2 | **0.759** | **0.727** | **0.697** | **0.659** | **0.614** | **0.552** | **0.461** | **0.328** | 0.157 | 0.018 |
+
+A mesma curva de densidade da Parte 1, agora com os dois modelos sobrepostos, média por
+faixa. A linha da Parte 2 (laranja) fica acima no AP em todas as faixas, mas o painel que
+importa é o da direita: no erro de contagem ela fica abaixo, e **a distância entre as duas
+cresce com a densidade**. Na faixa de 187 núcleos a Parte 1 erra 43 e a Parte 2 erra 13.
+Na imagem extrema de 343 núcleos, a Parte 1 erra 176 e a Parte 2 erra 28, uma redução de
+84% justamente no caso mais difícil:
+
+![Parte 1 contra Parte 2, contra densidade](results/parte2/comparacao/density_comparison.png)
+
+E as duas imagens onde o ganho foi maior, lado a lado. A primeira é a Parte 1, a segunda
+é a Parte 2 na mesma imagem, com os mapas de interior e fronteira:
+
+![Maior ganho, Parte 1](results/parte2/comparacao/gain_1_parte1.png)
+
+![Maior ganho, Parte 2](results/parte2/comparacao/gain_1_parte2.png)
+
 
 Esses números são com os limiares de decodificação no chute, 0.5 pra tudo, que foi como a
 gente rodou primeiro. A seção seguinte mostra que isso estava deixando bastante desempenho
@@ -628,6 +695,21 @@ usual: com gamma tão alto quase todo pixel vira "fácil" e o gradiente some.
 **O desvio entre seeds é pequeno**, no máximo 0.025, o que dá confiança de que as
 diferenças de 0.07 e 0.10 acima são reais e não ruído.
 
+As três métricas em barra, com a barra de erro das duas seeds. A do meio, o Dice, é a que
+mostra que o alpha não está corrigindo desbalanceamento e sim desbalanceando pro outro
+lado, porque ela cai junto com o mAP:
+
+![Eixo 2, mAP](results/parte3/eixo2_map.png)
+
+![Eixo 2, Dice](results/parte3/eixo2_dice.png)
+
+![Eixo 2, erro de contagem](results/parte3/eixo2_count_error.png)
+
+Repare que no erro de contagem (última figura) a ordem quase se inverte: as duas
+configurações balanceadas, que são as piores em mAP, estão entre as melhores em contagem.
+É o trade-off entre separar e delinear aparecendo pela segunda vez no trabalho.
+
+
 ### Resultado do eixo 3
 
 Mesmo protocolo, variando só o módulo de contexto no topo do encoder. Em
@@ -664,6 +746,17 @@ ser o único que mexe no erro de contagem.
 Resumindo pra apresentação: contexto global melhora o mAP, mas por classificar melhor, não
 por separar melhor. Quem separa melhor é o contexto **multi-escala**, e mesmo assim
 modestamente.
+
+As três barras do eixo 3. A leitura da resposta ao enunciado está na comparação entre a
+segunda figura (Dice, que mede classificar) e a terceira (erro de contagem, que mede
+separar): o Dice sobe nos dois módulos, o erro de contagem só melhora no PSPNet.
+
+![Eixo 3, mAP](results/parte3/eixo3_map.png)
+
+![Eixo 3, Dice](results/parte3/eixo3_dice.png)
+
+![Eixo 3, erro de contagem](results/parte3/eixo3_count_error.png)
+
 
 ### O que a Parte 3 mudou no modelo final, e por que quase nada mudou
 
@@ -779,6 +872,25 @@ emenda, mais objeto fantasma e menos mAP (0.274, 0.206, 0.175).
 O `blend` é praticamente imune (0.353, 0.348, 0.332, contagem sempre perto de 360) e o
 `fuse` recupera boa parte (0.337, 0.315, 0.286).
 
+O mosaico inteiro com as quatro decodificações lado a lado, no caso mais severo (tile 96).
+Da esquerda pra direita: a imagem, o ground truth, e depois full, per_tile, blend e fuse.
+As cores são aleatórias por instância, então o que interessa não é a cor e sim quantos
+pedaços distintos aparecem dentro de cada núcleo:
+
+![Parte 4, mosaico com tile 96](results/parte4/tile96/mosaic.png)
+
+E o zoom na emenda, que é o item 3 do enunciado. Aqui dá pra ver objeto por objeto o que
+acontece: no per_tile os núcleos que caem em cima da linha de corte saem partidos em dois
+pedaços de cores diferentes, no fuse eles voltam a ser um só, e no blend a emenda
+simplesmente não existe porque a decodificação rodou uma vez só:
+
+![Parte 4, emenda com tile 96](results/parte4/tile96/seam.png)
+
+Comparando com o tile 256, onde há menos emendas e o estrago é menor:
+
+![Parte 4, emenda com tile 256](results/parte4/tile256/seam.png)
+
+
 Olhando só nas instâncias que efetivamente cruzam uma emenda:
 
 | tile | instâncias na emenda | IoU médio, per_tile | IoU médio, fuse | recuperadas em 0.50 |
@@ -860,6 +972,15 @@ Os núcleos do DSB2018 têm diâmetro equivalente mediano de **19.4 px** no spli
 mediana é 20.7 px, a média 21.9 px e o máximo 87.7 px. Ou seja, os dois splits contam a
 mesma história, e o histograma está em `results/parte5/receptive_field.png`.
 
+O histograma de diâmetro dos núcleos com o campo receptivo e o output stride marcados. É
+a figura que sustenta o argumento da seção. Toda a distribuição fica espremida contra a
+esquerda, entre 0 e 90 px, e a linha vermelha do campo receptivo (899 px) está lá no
+extremo direito, sozinha, longe de qualquer objeto. Já a linha verde do output stride
+(32 px) cai dentro da distribuição, logo à direita do pico:
+
+![Parte 5, tamanho dos objetos contra campo receptivo](results/parte5/receptive_field.png)
+
+
 Confrontando com a tabela acima, o diagnóstico que o próprio enunciado dá como exemplo
 ("o objeto tem 180 px de diâmetro e o campo receptivo teórico do meu encoder é 140 px")
 **não se aplica ao nosso caso, e por uma margem enorme**. O campo receptivo teórico do
@@ -916,6 +1037,53 @@ Parte 1 tinha.
 O caso 4 é o oposto e é o modo de falha clássico: 84 núcleos verdadeiros, 60 previstos, 18
 instâncias previstas cobrindo dois ou mais núcleos de verdade. É o aglomerado denso onde a
 casca de 2 px entre núcleos simplesmente não foi prevista.
+
+As cinco, cada uma com imagem, ground truth, predição e os quatro mapas intermediários,
+como o enunciado pede. O título de cada figura traz o AP, a contagem e o breakdown de
+erro daquela imagem.
+
+**1. AP 0.037.** Contagem quase certa (54 contra 51), zero fusões e zero fragmentações, e
+mesmo assim o pior AP do teste. Comparando o ground truth com a predição dá pra ver o
+motivo na hora: **os núcleos previstos saem visivelmente mais gordos que os verdadeiros**.
+O objeto está no lugar certo, a contagem está certa, mas cada máscara é grande demais e o
+IoU não chega a 0.5. Os quatro mapas estão limpos e bem formados, o problema não é a rede
+não ter entendido a imagem, é onde o limiar corta:
+
+![Falha 1](results/parte5/failure_1.png)
+
+**2. AP 0.091.** Duas fusões e duas fragmentações na mesma imagem, os dois modos de erro
+convivendo:
+
+![Falha 2](results/parte5/failure_2.png)
+
+**3. AP 0.112.** Imagem escura e esparsa, com núcleos de 13 px. Aqui aparecem dois
+problemas juntos: três núcleos fracos no meio do campo escuro não foram achados de jeito
+nenhum (17 no ground truth, 14 previstos), e os que foram achados sofrem do mesmo
+engordamento da falha 1:
+
+![Falha 3](results/parte5/failure_3.png)
+
+**4. AP 0.113.** O caso clássico e o pior de todos em fusão: 84 núcleos verdadeiros, 60
+previstos, 18 previsões cobrindo dois ou mais núcleos. É histologia (cluster 1), com
+núcleos alongados de 12 px arrumados em faixas densas. O mapa de fronteira **está lá e
+está nítido**, com anéis bem desenhados em volta dos núcleos isolados. O que falha é que
+dentro das faixas densas os anéis de núcleos vizinhos se encostam e se fundem num traço
+contínuo, e aí ele deixa de separar qualquer coisa:
+
+![Falha 4](results/parte5/failure_4.png)
+
+**5. AP 0.134.** Densa e com núcleos de tamanho heterogêneo, mistura os dois modos:
+
+![Falha 5](results/parte5/failure_5.png)
+
+**Uma ressalva sobre esta galeria.** As cinco figuras foram geradas com a decodificação
+padrão (limiar 0.5), que é a que estava valendo quando a gente rodou a Parte 5, e não com
+a calibrada da Parte 2. Isso importa porque o engordamento dos objetos que aparece nas
+falhas 1 e 3 é exatamente o sintoma que subir o `fg_threshold` pra 0.7 corrigiu. Ou seja,
+parte do que está nessas figuras não é limite do método, é limiar mal escolhido. As falhas
+2, 4 e 5, que são de fusão e fragmentação em aglomerado denso, essas sim sobrevivem à
+calibração, e são as que valem discutir como limite real.
+
 
 ### O diagnóstico, com o número do erro no split inteiro
 
@@ -1052,6 +1220,31 @@ perde tudo junto.
 O custo prático dessa fragilidade está na última coluna da tabela grande: com brilho e
 contraste 3 o erro de contagem vai de 4 pra **24 núcleos por imagem**, que é mais do que a
 Parte 1 errava na imagem limpa.
+
+A curva de degradação, que é o que o enunciado pede. O ponto em x igual a 0 é a imagem
+limpa, e as três curvas partem dele. Dá pra ver o ruído subindo acima da linha do limpo na
+intensidade 1 antes de cair, e o brilho e contraste despencando mais rápido que o blur:
+
+![Parte 6, curva de degradação do mAP](results/parte6/degradation.png)
+
+E as três corrupções na intensidade 3 na mesma imagem, com os mapas intermediários, que é
+onde dá pra ver **por que** cada uma quebra de um jeito diferente:
+
+![Ruído, intensidade 3](results/parte6/noise_s3.png)
+
+Com ruído o foreground continua nítido e é a fronteira que vira sujeira, o que explica o
+Dice segurar e o mAP cair.
+
+![Blur, intensidade 3](results/parte6/blur_s3.png)
+
+Com blur a fronteira some por completo, porque uma casca de 2 px não sobrevive a um
+gaussiano de sigma 4.
+
+![Brilho e contraste, intensidade 3](results/parte6/brightness_contrast_s3.png)
+
+Com brilho e contraste o modelo perde o objeto inteiro, não só a fronteira, e é por isso
+que o Dice desaba junto.
+
 
 <!-- ANCORA_RESULTADOS -->
 
